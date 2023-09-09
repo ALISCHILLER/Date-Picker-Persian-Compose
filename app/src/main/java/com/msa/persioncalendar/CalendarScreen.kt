@@ -176,7 +176,8 @@ fun CalendarView(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 4.dp)
+                    .padding(5.dp)
+                    .padding(4.dp)
                     .background(largeRadialGradient),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -305,7 +306,7 @@ fun DayOfWeekView(
                     modifier = Modifier
                         .aspectRatio(1f, true)
                         .padding(4.dp)
-                        .clip(MaterialTheme.shapes.extraSmall)
+                        .clip(RoundedCornerShape(10.dp))
                         .clickable {
                             if (it != " ") {
                                 changeSelectedPart("main")

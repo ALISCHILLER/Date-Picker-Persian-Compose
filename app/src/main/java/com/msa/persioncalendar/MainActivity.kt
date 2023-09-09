@@ -16,7 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.msa.persioncalendar.screen.PersianDatePicker
 import com.msa.persioncalendar.ui.theme.PersionCalendarTheme
 
 class MainActivity : ComponentActivity() {
