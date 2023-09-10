@@ -2,23 +2,29 @@
 
 package com.msa.persioncalendar
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.R
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -46,6 +52,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Brush
@@ -53,20 +62,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RadialGradientShader
 import androidx.compose.ui.graphics.Shader
 import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.msa.persioncalendar.ui.theme.*
 import com.msa.persioncalendar.utils.PersionCalendar
+import com.msa.persioncalendar.utils.PickerType
 import com.msa.persioncalendar.utils.getweekDay
 import com.msa.persioncalendar.utils.toPersianNumber
+import com.smarttoolfactory.animatedlist.ActiveColor
+import com.smarttoolfactory.animatedlist.AnimatedInfiniteLazyRow
+import com.smarttoolfactory.animatedlist.InactiveColor
+import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 
 @Composable
@@ -92,8 +113,8 @@ fun CalendarScreen(
     var mDay by remember {
         mutableStateOf(today.toPersianNumber())
     }
-    var selectedDay by remember {
-        mutableStateOf("main")
+    var pickerType: PickerType by remember {
+        mutableStateOf(PickerType.Year)
     }
 
     Dialog(
@@ -124,16 +145,43 @@ fun CalendarScreen(
                         .background(color = Color.White)
                         .animateContentSize()
                 ) {
-                    CalendarView( mMonth = mMonth,
-                        mDay = mDay,
-                        mYear = mYear,)
-                    DayOfWeekView(
+
+                    CalendarView(
                         mMonth = mMonth,
                         mDay = mDay,
                         mYear = mYear,
-                        setDay = { mDay = it },
-                        {}
+                        pickerTypeChang = { pickerType = it },
+                        pickerType = pickerType
                     )
+
+                    Crossfade(pickerType, label = "") {
+                        when (it) {
+                            PickerType.Day -> DayOfWeekView(
+                                mMonth = mMonth,
+                                mDay = mDay,
+                                mYear = mYear,
+                                setDay = { mDay = it },
+                                {}
+                            )
+
+                            PickerType.Year -> YearsView(
+
+                            )
+
+                            PickerType.Month -> YearsView(
+
+                            )
+
+                            else -> DayOfWeekView(
+                                mMonth = mMonth,
+                                mDay = mDay,
+                                mYear = mYear,
+                                setDay = { mDay = it },
+                                {}
+                            )
+                        }
+                    }
+
 
                 }
             }
@@ -147,6 +195,8 @@ fun CalendarView(
     mMonth: String,
     mDay: String,
     mYear: String,
+    pickerTypeChang: (PickerType) -> Unit,
+    pickerType: (PickerType),
 ) {
     val largeRadialGradient = object : ShaderBrush() {
         override fun createShader(size: Size): Shader {
@@ -191,7 +241,7 @@ fun CalendarView(
 
                 Text(
                     modifier = Modifier.padding(5.dp),
-                    text = "$mYear $mMonth  $mDay" ,
+                    text = "$mYear $mMonth  $mDay",
                     color = Color.White,
                     style = TextStyle(),
                     fontWeight = FontWeight.Bold
@@ -223,7 +273,12 @@ fun CalendarView(
 
             //Years
             TextButton(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    if (pickerType != PickerType.Year)
+                        pickerTypeChang(PickerType.Year)
+                    else
+                        pickerTypeChang(PickerType.Day)
+                },
                 modifier = Modifier.padding(0.dp)
             ) {
                 Text(
@@ -239,7 +294,12 @@ fun CalendarView(
 
             ///Month
             TextButton(
-                onClick = { /*TODO*/ }
+                onClick = {
+                    if (pickerType != PickerType.Month)
+                        pickerTypeChang(PickerType.Month)
+                    else
+                        pickerTypeChang(PickerType.Day)
+                }
             )
             {
                 Text(text = persion.getMonthString(), color = Color.White)
@@ -250,6 +310,7 @@ fun CalendarView(
                 )
             }
 
+            // KeyboardArrowRight
             IconButton(
                 onClick = { /*TODO*/ },
                 modifier = Modifier.size(46.dp)
@@ -265,6 +326,16 @@ fun CalendarView(
         }
 
     }
+}
+
+
+
+
+@Composable
+fun MonthView(
+
+) {
+
 }
 
 @Composable
@@ -336,6 +407,82 @@ fun DayOfWeekView(
 
 }
 
+@Composable
+fun YearsView(
+
+) {
+    var years = mutableListOf<Int>()
+    for (y in 1350 downTo 1450){
+        years.add(y)
+    }
+
+    Column(
+        modifier = Modifier
+            .padding(top = 16.dp)
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "انتخاب سال",
+            style = MaterialTheme.typography.titleMedium,
+        )
+        val listWidth = LocalDensity.current.run { 1000.toDp() }
+        val spaceBetweenItems = LocalDensity.current.run { 30.toDp() }
+        val initialVisibleItem = 0
+        val visibleItemCount = 5
+        val initialSelectedItem = 2
+
+        var selectedItem by remember {
+            mutableStateOf(initialSelectedItem)
+        }
+
+
+
+        AnimatedInfiniteLazyRow(
+            modifier = Modifier.width(300.dp),
+            items = years,
+            visibleItemCount = 7,
+            selectorIndex = 3,
+            inactiveColor = InactiveColor,
+            activeColor = ActiveColor,
+            inactiveItemPercent = 70,
+            itemContent = { animationProgress, index, item, size, lazyListState ->
+
+                val color = animationProgress.color
+                val scale = animationProgress.scale
+
+                Box(
+                    modifier = Modifier
+                        .scale(scale)
+                        .background(color, CircleShape)
+                        .size(size)
+                        .clickable(
+                            interactionSource = remember {
+                                MutableInteractionSource()
+                            },
+                            indication = null
+                        ) {
+                            coroutineScope.launch {
+                                lazyListState.animateScrollBy(animationProgress.distanceToSelector)
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    Text(
+                        "$index",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        )
+
+        }
+
+}
 
 @Composable
 @Preview(showBackground = true)
