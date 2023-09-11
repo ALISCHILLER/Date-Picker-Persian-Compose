@@ -11,6 +11,7 @@ val persianWeekDays = listOf("شنبه","یکشنبه","دوشنبه","سه شن
 val monthsList = listOf("فروردین", "اردیبهشت", "خرداد", "تیر",
     "مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند",)
 
+
 fun getweekDay(mMonth: String,mDay : String , mYear: String ): MutableList<String> {
 
     val weekDay = PersionCalendar(mYear.toInt(),
@@ -29,7 +30,7 @@ fun getweekDay(mMonth: String,mDay : String , mYear: String ): MutableList<Strin
         }
     } else {
         for (i in 1..30){
-            daysList.add(i.toString())
+            daysList.add(i.toPersianNumber())
         }
     }
     return daysList
