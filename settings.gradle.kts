@@ -18,4 +18,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "PersionCalendar"
 include(":app")
- 
+include(":calendar")

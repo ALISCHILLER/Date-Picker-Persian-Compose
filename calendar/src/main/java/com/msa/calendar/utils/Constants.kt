@@ -1,4 +1,4 @@
-package com.msa.persioncalendar.utils
+package com.msa.calendar.utils
 
 internal object Constants {
     internal const val YEAR_GRID_COLUMNS = 1

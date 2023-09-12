@@ -1,4 +1,4 @@
-package com.msa.persioncalendar.ui.view
+package com.msa.calendar.ui.view
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -36,7 +36,7 @@ fun DayOfWeekView(
     setDay: (String) -> Unit,
     changeSelectedPart: (String) -> Unit
 ) {
-    val daysList = com.msa.calendar.utils.getweekDay(mMonth, mYear)
+    val daysList = getweekDay(mMonth, mYear)
 
     Column {
     Row(

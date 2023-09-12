@@ -1,4 +1,4 @@
-package com.msa.persioncalendar.ui.view
+package com.msa.calendar.ui.view
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -31,15 +31,17 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.msa.persioncalendar.R
+import com.msa.calendar.R
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.toPersianNumber
+import kotlinx.coroutines.DelicateCoroutinesApi
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, DelicateCoroutinesApi::class)
 @SuppressLint("CoroutineCreationDuringComposition", "SuspiciousIndentation")
 @Composable
 fun YearsView(
@@ -81,7 +83,7 @@ fun YearsView(
             items(years) {
                 val year =  it
                 val selected = mYear == year
-                val thisYear = year == com.msa.calendar.utils.PersionCalendar().getYear().toPersianNumber()
+                val thisYear = year == PersionCalendar().getYear().toPersianNumber()
 
                 val textStyle =
                     when {

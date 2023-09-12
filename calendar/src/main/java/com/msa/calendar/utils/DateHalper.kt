@@ -1,7 +1,7 @@
-package com.msa.persioncalendar.utils
+package com.msa.calendar.utils
 
 import android.content.Context
-import com.msa.persioncalendar.R
+import com.msa.calendar.R
 
 /**
  * Turns the month number to its Persian equivalent
