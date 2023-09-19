@@ -1,5 +1,5 @@
-**Title:** DatePickersPersion: a Jetpack Compose library for date and time selection in Farsi language
-
+**Title:** DatePickersPersion: a Jetpack Compose library for date and time selection in Farsi language 
+DatePicker Persian android  Jetpack Compose
 **Summary:**
 DatePickersPersion is a Jetpack Compose library that allows you to choose date and time in Farsi language. This library uses a simple and intuitive user interface that makes it easy.
 
