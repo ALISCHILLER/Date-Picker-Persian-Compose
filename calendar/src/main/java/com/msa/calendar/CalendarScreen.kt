@@ -7,12 +7,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.msa.calendar.ui.view.CalendarView
 import com.msa.calendar.ui.view.DayOfWeekView
@@ -34,6 +39,7 @@ import com.msa.calendar.utils.toPersianNumber
 @Composable
 fun CalendarScreen(
     onDismiss: (Boolean) -> Unit,
+    onConfirm: (String) -> Unit,
 ) {
     val today = PersionCalendar().getDay()
     val month = PersionCalendar().getMonth()
@@ -120,8 +126,22 @@ fun CalendarScreen(
 
                         }
                     }
-
-
+                    Row() {
+                        TextButton(
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                            onClick = {
+                              val month = (monthsList.indexOf(mMonth) + 1).toPersianNumber()
+                                onConfirm("$mYear / $month / $mDay")
+                                onDismiss(true)
+                            }) {
+                                Text(text = "تایید")
+                        }
+                        TextButton(
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                            onClick = {  onDismiss(true) }) {
+                            Text(text = "انصراف")
+                        }
+                    }
                 }
             }
         }
@@ -137,6 +157,7 @@ fun CalendarScreenPreview() {
         mutableStateOf(true)
     }
     CalendarScreen(
-        onDismiss = { hideDatePicker = true }
+        onDismiss = { hideDatePicker = true },
+        {}
     )
 }
