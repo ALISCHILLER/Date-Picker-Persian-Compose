@@ -8,7 +8,7 @@ DatePickersPersion is a Jetpack Compose library that allows you to choose date a
 ![]([https://github.com/Your_Repository_Name/Your_GIF_Name.gif](https://github.com/ALISCHILLER/DatePickersPersion/blob/main/media/Screen_Recording_20230919_162830_PersionCalendar.gif))
 
 #myimage
-![alt text]([http://url/to/img.png](https://github.com/ALISCHILLER/DatePickersPersion/blob/main/media/Screenshot_20230919_162724_PersionCalendar.jpg))
+![alt text]([https://github.com/[username]/[reponame]/blob/[branch]/image.jpg](https://github.com/ALISCHILLER/DatePickersPersion/blob/main/media/Screenshot_20230919_162724_PersionCalendar.jpg)?raw=true)
 **Attributes:**
 
 * Support for selecting the date and time in Farsi language
