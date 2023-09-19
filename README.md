@@ -1,104 +1,104 @@
-**عنوان:** DatePickersPersion: یک کتابخانه Jetpack Compose برای انتخاب تاریخ و زمان به زبان فارسی
+**Title:** DatePickersPersion: a Jetpack Compose library for date and time selection in Farsi language
 
-**خلاصه:**
+**Summary:**
 
-DatePickersPersion یک کتابخانه Jetpack Compose است که به شما امکان می دهد تاریخ و زمان را به زبان فارسی انتخاب کنید. این کتابخانه از یک رابط کاربری ساده و بصری استفاده می کند که استفاده از آن را آسان می کند.
+DatePickersPersion is a Jetpack Compose library that allows you to choose date and time in Farsi language. This library uses a simple and intuitive user interface that makes it easy.
 
-**ویژگی ها:**
+**Attributes:**
 
-* پشتیبانی از انتخاب تاریخ و زمان به زبان فارسی
-* رابط کاربری ساده و بصری
-* قابلیت سفارشی سازی
+* Support for selecting the date and time in Farsi language
+* Simple and intuitive user interface
+* Ability to customize
 
-**نحوه استفاده:**
+**How to use:**
 
-برای استفاده از DatePickersPersion، ابتدا باید آن را به پروژه Jetpack Compose خود اضافه کنید. می توانید این کار را با افزودن زیرمجموعه زیر به فایل build.gradle خود انجام دهید:
+To use DatePickersPersion, you must first add it to your Jetpack Compose project. You can do this by adding the following substring to your build.gradle file:
 
 ```
 
-	allprojects {
-		repositories {
-			...
-			maven { url 'https://www.jitpack.io' }
-		}
-	}
+All projects {
+reservoirs
+...
+maven { url 'https://www.jitpack.io' }
+}
+}
 ```
 ```
 
-dependencies {
-	        implementation 'com.github.ALISCHILLER:DatePickersPersion:Tag'
-	}
+Dependencies {
+Implementation of 'com.github.ALISCHILLER:DatePickersPersion:Tag'
+}
 ```
 
-پس از نصب کتابخانه، می توانید از آن در پروژه خود استفاده کنید. برای این کار، باید کامپوننت `CalendarScreen` را به فایل Jetpack Compose خود وارد کنید:
+After installing the library, you can use it in your project. To do this, you need to add the `CalendarScreen` component to your Jetpack Compose file:
 
-```kotlin
+Kathleen
 import com.github.ALISCHILLER.date_pickers_persian.DatePicker
 
-@Composable
-fun App() {
- CalendarScreen(
- onDismiss = { hideDatePicker = true },
-  onConfirm = { setDate = it }
+@ Ability to combine
+fun program () {
+   calendar page (
+   onDismiss = { hideDatePicker = true },
+    onConfirm = { setDate = it }
+     )
+}
+```
+
+This code creates a simple ``DatePicker'' component that displays a date in Farsi language.
+
+To customize the `DatePicker` component, you can use the following features:
+
+
+
+**Example:**
+
+
+
+This code creates a ``DatePicker'' component that displays a date in Persian, and the default date is today. It also defines an ``onSelect'' function that is called when a date is selected and prints the date to the console.
+
+**the experiment:**
+
+To test the DatePickersPersion library, you can use the following example:
+
+Kathleen
+import com.github.ALISCHILLER.date_pickers_persian.DatePicker
+
+@ Ability to combine
+fun program () {
+    calendar page (
+     onDismiss = { hideDatePicker = true },
+     onConfirm = { setDate = it }
    )
 }
 ```
 
-این کد یک کامپوننت `DatePicker` ساده ایجاد می کند که یک تاریخ را به زبان فارسی نمایش می دهد.
+This code creates a simple `DatePicker` component and saves the selected date to a `date` variable.
 
-برای سفارشی سازی کامپوننت `DatePicker`، می توانید از ویژگی های زیر استفاده کنید:
+**License:**
 
+DatePickersPersion is released under the MIT license.
 
+**connections:**
 
-**مثال:**
+For more information, please visit the GitHub page: https://github.com/ALISCHILLER/DatePickersPersion.
 
+**Version:** 0.0.1
 
+**Date:** 2023-09-19
 
-این کد یک کامپوننت `DatePicker` را ایجاد می کند که یک تاریخ را به زبان فارسی نمایش می دهد و تاریخ پیش فرض امروز است. همچنین، یک تابع `onSelect` را تعریف می کند که هنگام انتخاب تاریخ فراخوانی می شود و تاریخ انتخاب شده را به کنسول چاپ می کند.
+**Author:** Ali Soleimani
 
-**آزمایش:**
+**Changes:**
 
-برای آزمایش کتابخانه DatePickersPersion، می توانید از مثال زیر استفاده کنید:
+* Version 0.0.1: Initial release
 
-```kotlin
-import com.github.ALISCHILLER.date_pickers_persian.DatePicker
-
-@Composable
-fun App() {
-  CalendarScreen(
-   onDismiss = { hideDatePicker = true },
-   onConfirm = { setDate = it }
- )
-}
-```
-
-این کد یک کامپوننت `DatePicker` ساده ایجاد می کند و تاریخ انتخاب شده را به یک متغیر `date` ذخیره می کند.
-
-**مجوز:**
-
-DatePickersPersion تحت مجوز MIT منتشر می شود.
-
-**ارتباطات:**
-
-برای اطلاعات بیشتر، لطفا به صفحه GitHub: https://github.com/ALISCHILLER/DatePickersPersion مراجعه کنید.
-
-**نسخه:** 0.0.1
-
-**تاریخ:** 2023-09-19
-
-**نویسنده:** Ali Schiller
-
-**تغییرات:**
-
-* نسخه 0.0.1: انتشار اولیه
-
-**پیاده سازی:**
+**Implementation:**
 
 
-هنگامی که کاربر تاریخ یا زمان را انتخاب می کند، یک رویداد `onSelect` فراخوانی می شود. این رویداد مقدار تاریخ یا زمان انتخاب شده را به عنوان یک پارامتر دریافت می کند.
+An onSelect event is called when the user selects a date or time. This event receives the date or selected value as a time.
 
 
 
-**توسعه:**
+**Development:**
 
-کتابخانه DatePickersPersion در حال توسعه است. در آینده، ویژگی های جدیدی مانند پشتیبانی از چندین زبان و پشتیبانی از انتخاب
+The DatePickersPersion library is under development. In the future, new features support language development and support selection
