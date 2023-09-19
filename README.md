@@ -30,7 +30,7 @@ dependencies {
 	}
 ```
 
-پس از نصب کتابخانه، می توانید از آن در پروژه خود استفاده کنید. برای این کار، باید کامپوننت `DatePicker` را به فایل Jetpack Compose خود وارد کنید:
+پس از نصب کتابخانه، می توانید از آن در پروژه خود استفاده کنید. برای این کار، باید کامپوننت `CalendarScreen` را به فایل Jetpack Compose خود وارد کنید:
 
 ```kotlin
 import com.github.ALISCHILLER.date_pickers_persian.DatePicker
