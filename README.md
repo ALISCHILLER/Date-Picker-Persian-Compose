@@ -35,7 +35,7 @@ After installing the library, you can use it in your project. To do this, you ne
 Kathleen
 import com.github.ALISCHILLER.date_pickers_persian.DatePicker
 
-@ Ability to combine
+@Composable
 fun program () {
    calendar page (
    onDismiss = { hideDatePicker = true },
@@ -44,26 +44,10 @@ fun program () {
 }
 ```
 
-This code creates a simple ``DatePicker'' component that displays a date in Farsi language.
 
-To customize the `DatePicker` component, you can use the following features:
-
-
-
-**Example:**
-
-
-
-This code creates a ``DatePicker'' component that displays a date in Persian, and the default date is today. It also defines an ``onSelect'' function that is called when a date is selected and prints the date to the console.
-
-**the experiment:**
-
-To test the DatePickersPersion library, you can use the following example:
-
-Kathleen
 import com.github.ALISCHILLER.date_pickers_persian.DatePicker
 
-@ Ability to combine
+@Composable
 fun program () {
     calendar page (
      onDismiss = { hideDatePicker = true },
