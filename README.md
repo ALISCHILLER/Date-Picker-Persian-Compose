@@ -6,8 +6,8 @@ DatePickersPersion is a Jetpack Compose library that allows you to choose date a
 ```
 DatePicker Persian android  Jetpack Compose 
 ```
-<img src="https://github.com/ALISCHILLER/DatePickersPersion/blob/main/media/Screen_Recording_20230919_162830_PersionCalendar.gif" width="300" height="496px">&emsp;
-<img src="https://github.com/ALISCHILLER/DatePickersPersion/blob/main/media/Screenshot_20230919_162724_PersionCalendar.jpg" width="300" height="496px"/>
+<img src="https://github.com/ALISCHILLER/DatePickersPersion/blob/main/media/Screen_Recording_20230919_162830_PersionCalendar.gif" width="400" height="496px">&emsp;
+<img src="https://github.com/ALISCHILLER/DatePickersPersion/blob/main/media/Screenshot_20230919_162724_PersionCalendar.jpg" width="400" height="496px"/>
 
 **Attributes:**
 
