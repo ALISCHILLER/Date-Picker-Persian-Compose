@@ -6,6 +6,7 @@
 ```
 DatePicker Persian android  Jetpack Compose 
 ```
+## Theme
 <img src="https://github.com/ALISCHILLER/DatePicker-Persian-Compose/blob/main/media/Screen_Recording_20230919_162830_PersionCalendar.gif" width="400" height="796px">&emsp;
 <img src="https://github.com/ALISCHILLER/DatePicker-Persian-Compose/blob/main/media/Screenshot_20230919_162724_PersionCalendar.jpg" width="400" height="596px"/>
 
