@@ -1,8 +1,8 @@
-**Title:** DatePickersPersion: a Jetpack Compose library for date and time selection in Farsi language 
+**Title:** DatePickers Persian Compose : a Jetpack Compose library for date and time selection in Farsi language 
 
 
 **Summary:**
-DatePickersPersion is a Jetpack Compose library that allows you to choose date and time in Farsi language. This library uses a simple and intuitive user interface that makes it easy.
+ DatePickers Persian Compose is a Jetpack Compose library that allows you to choose date and time in Farsi language. This library uses a simple and intuitive user interface that makes it easy.
 ```
 DatePicker Persian android  Jetpack Compose 
 ```
@@ -17,7 +17,7 @@ DatePicker Persian android  Jetpack Compose
 
 **How to use:**
 
-To use DatePickersPersion, you must first add it to your Jetpack Compose project. You can do this by adding the following substring to your build.gradle file:
+To use DatePickers Persian Compose, you must first add it to your Jetpack Compose project. You can do this by adding the following substring to your build.gradle file:
 
 ```
 
@@ -31,7 +31,7 @@ maven { url 'https://www.jitpack.io' }
 ```
 
 Dependencies {
-Implementation of 'com.github.ALISCHILLER:DatePickersPersion:Tag'
+Implementation of 'com.github.ALISCHILLER: DatePickers Persian Compose:Tag'
 }
 ```
 
@@ -69,7 +69,7 @@ DatePickersPersion is released under the MIT license.
 
 **connections:**
 
-For more information, please visit the GitHub page: https://github.com/ALISCHILLER/DatePickersPersion.
+For more information, please visit the GitHub page: https://github.com/ALISCHILLER/DatePicker-Persian-Compose.
 
 **Version:** 0.0.1
 
@@ -90,4 +90,4 @@ An onSelect event is called when the user selects a date or time. This event rec
 
 **Development:**
 
-The DatePickersPersion library is under development. In the future, new features support language development and support selection
+The DatePicker Persian Compose library is under development. In the future, new features support language development and support selection
