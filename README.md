@@ -35,7 +35,7 @@ maven { url 'https://www.jitpack.io' }
 ```
 
 Dependencies {
-Implementation of 'com.github.ALISCHILLER: DatePickers Persian Compose:Tag'
+implementation 'com.github.ALISCHILLER:Date-Picker-Persian-Compose:0.0.2'
 }
 ```
 
