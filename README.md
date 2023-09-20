@@ -4,8 +4,6 @@
 **Summary:**
 DatePickersPersion is a Jetpack Compose library that allows you to choose date and time in Farsi language. This library uses a simple and intuitive user interface that makes it easy.
 # Sheets-Compose-Dialogs
-
-
 <p>
   <img src="https://github.com/ALISCHILLER/DatePickersPersion/blob/main/media/Screenshot_20230919_162724_PersionCalendar.jpg" width="196px" height="196px" alt="Sheets Library" align="left" style="margin-right: 24px; margin-bottom: 24px">
   <p>
