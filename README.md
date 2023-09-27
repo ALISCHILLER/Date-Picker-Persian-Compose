@@ -67,9 +67,9 @@ fun program () {
 
 This code creates a simple `DatePicker` component and saves the selected date to a `date` variable.
 
-**License:**
 
-DatePickersPersion is released under the MIT license.
+  The GNU General Public License is a free, copyleft license for
+software and other kinds of works.
 
 **connections:**
 
@@ -95,3 +95,16 @@ An onSelect event is called when the user selects a date or time. This event rec
 **Development:**
 
 The DatePicker Persian Compose library is under development. In the future, new features support language development and support selection
+
+
+
+**License:**
+
+                    GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+                  
