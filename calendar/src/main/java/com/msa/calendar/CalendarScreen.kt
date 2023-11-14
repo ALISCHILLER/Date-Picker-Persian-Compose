@@ -1,5 +1,6 @@
 package com.msa.calendar
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -35,6 +36,7 @@ import com.msa.calendar.ui.view.YearsView
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.PickerType
 import com.msa.calendar.utils.toPersianNumber
+
 
 @Composable
 fun CalendarScreen(
@@ -130,8 +132,8 @@ fun CalendarScreen(
                         TextButton(
                             modifier = Modifier.padding(horizontal = 8.dp),
                             onClick = {
-                              val month = (monthsList.indexOf(mMonth) + 1).toPersianNumber()
-                                onConfirm("$mYear / $month / $mDay")
+                              val monthh = (monthsList.indexOf(mMonth) + 1).toPersianNumber()
+                                onConfirm("$mYear / $monthh / $mDay")
                                 onDismiss(true)
                             }) {
                                 Text(text = "تایید")
