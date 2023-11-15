@@ -46,7 +46,7 @@ fun CalendarScreen(
     val today = PersionCalendar().getDay()
     val month = PersionCalendar().getMonth()
     val year = PersionCalendar().getYear()
-
+    var monthh:String
     val monthsList = listOf(
         "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد",
         "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند",
@@ -132,7 +132,7 @@ fun CalendarScreen(
                         TextButton(
                             modifier = Modifier.padding(horizontal = 8.dp),
                             onClick = {
-                              val monthh = (monthsList.indexOf(mMonth) + 1).toPersianNumber()
+                                monthh  = (monthsList.indexOf(mMonth) + 1).toPersianNumber()
                                 onConfirm("$mYear / $monthh / $mDay")
                                 onDismiss(true)
                             }) {
