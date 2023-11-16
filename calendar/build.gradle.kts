@@ -61,5 +61,4 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
 
-    implementation ("io.github.sridhar-sp:neumorphic:0.0.6")
 }
