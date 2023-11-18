@@ -60,38 +60,80 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation(kotlin("stdlib"))
 }
 
 
+//publishing {
+//    repositories {
+//        maven {
+//            name = "PersionCalendar"
+//            setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
+//            credentials {
+//                username = project.findProperty("mavenCentralUsername")?.toString() ?: System.getenv("MAVEN_USERNAME")
+//                password = project.findProperty("mavenCentralPassword")?.toString() ?: System.getenv("MAVEN_PASSWORD")
+//            }
+//        }
+//    }
+//    publications {
+//        register<MavenPublication>("release") {
+//            groupId = "com.msa"
+//            artifactId = "calendar"
+//            version = "0.1.3"
+//            afterEvaluate {
+//                from(components["release"])
+//            }
+//
+//            pom {
+//                name.set("PersionCalendar")
+//                description.set("An extensible persion calendar for the jetpack composition system.")
+//                url.set("https://github.com/ALISCHILLER/Date-Picker-Persian-Compose")
+//                licenses {
+//                    license {
+//                        name.set(" GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007")
+//                        url.set("https://www.gnu.org/licenses/gpl-3.0.en.html#license-text")
+//                        distribution.set("https://www.gnu.org/licenses/gpl-3.0.en.html#license-text")
+//                    }
+//                }
+//                developers {
+//                    developer {
+//                        id.set("ALISCHILLER")
+//                        name.set("ALI Soleimani")
+//                        url.set("https://github.com/ALISCHILLER")
+//                    }
+//                }
+//                scm {
+//                    url.set("https://github.com/ALISCHILLER/Date-Picker-Persian-Compose")
+//                    connection.set("scm:git:git://ALISCHILLER/Date-Picker-Persian-Compose.git")
+//                    developerConnection.set("scm:git:ssh://git@github.com:codeandtheory/YCharts.git")
+//                }
+//            }
+//        }
+//    }
+//}
+//signing {
+//    useInMemoryPgpKeys(
+//        project.findProperty("signing.keyId")?.toString() ?: System.getenv("SIGNINGKEY"),
+//        project.findProperty("signing.InMemoryKey")?.toString() ?: System.getenv("MEMORY_KEY"),
+//        project.findProperty("signing.password")?.toString()?:System.getenv("SIGNINGPASSWORD")
+//    )
+//    sign(publishing.publications)
+//}
 
 publishing {
-    repositories {
-        maven {
-            name = "PersionCalendar"
-            setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
-            credentials {
-                username = project.findProperty("mavenCentralUsername")?.toString() ?: System.getenv("MAVEN_USERNAME")
-                password = project.findProperty("mavenCentralPassword")?.toString() ?: System.getenv("MAVEN_PASSWORD")
-            }
-        }
-    }
     publications {
         register<MavenPublication>("release") {
             groupId = "com.msa"
             artifactId = "calendar"
-            version = "0.1.3"
-            afterEvaluate {
-                from(components["release"])
-            }
+            version = "0.1.5"
+            artifact("$buildDir/outputs/aar/calendar-release.aar")
 
             pom {
                 name.set("PersionCalendar")
-                description.set("An extensible persion calendar for the jetpack composition system.")
+                description.set("An extensible Persian calendar for the Jetpack Compose system.")
                 url.set("https://github.com/ALISCHILLER/Date-Picker-Persian-Compose")
                 licenses {
                     license {
-                        name.set(" GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007")
+                        name.set("GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007")
                         url.set("https://www.gnu.org/licenses/gpl-3.0.en.html#license-text")
                         distribution.set("https://www.gnu.org/licenses/gpl-3.0.en.html#license-text")
                     }
@@ -111,14 +153,18 @@ publishing {
             }
         }
     }
+
+    repositories {
+        maven {
+            name = "PersionCalendar"
+            url = uri("https://maven.pkg.github.com/ALISCHILLER/Date-Picker-Persian-Compose")
+            credentials {
+                username = System.getenv("GITHUB_USER")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }
-signing {
-    useInMemoryPgpKeys(
-        project.findProperty("signing.keyId")?.toString() ?: System.getenv("SIGNINGKEY"),
-        project.findProperty("signing.InMemoryKey")?.toString() ?: System.getenv("MEMORY_KEY"),
-        project.findProperty("signing.password")?.toString()?:System.getenv("SIGNINGPASSWORD")
-    )
-    sign(publishing.publications)
-}
+
 
 
