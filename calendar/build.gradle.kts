@@ -78,8 +78,8 @@ publishing {
     }
     publications {
         register<MavenPublication>("release") {
-            groupId = "co.ALISCHILLER"
-            artifactId = "persioncalendar"
+            groupId = "com.msa"
+            artifactId = "calendar"
             version = "0.1.3"
             afterEvaluate {
                 from(components["release"])
