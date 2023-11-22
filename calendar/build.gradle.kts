@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    id("maven-publish")
+    `maven-publish`
     id("signing")
 }
 
@@ -122,10 +122,10 @@ dependencies {
 publishing {
     publications {
         register<MavenPublication>("release") {
-            groupId = "com.msa"
-            artifactId = "calendar"
-            version = "0.1.5"
-            artifact("$buildDir/outputs/aar/calendar-release.aar")
+//            groupId = "com.msa"
+//            artifactId = "calendar"
+//            version = "0.1.6"
+//            artifact("$buildDir/outputs/aar/calendar-release.aar")
 
             pom {
                 name.set("PersionCalendar")
@@ -159,8 +159,8 @@ publishing {
             name = "PersionCalendar"
             url = uri("https://maven.pkg.github.com/ALISCHILLER/Date-Picker-Persian-Compose")
             credentials {
-                username = System.getenv("GITHUB_USER")
-                password = System.getenv("GITHUB_TOKEN")
+                username = "ALISCHILLER"
+                password = "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"
             }
         }
     }

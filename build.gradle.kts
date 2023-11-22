@@ -10,3 +10,25 @@ plugins {
     `maven-publish`
 }
 
+
+subprojects {
+    apply(plugin = "maven-publish")
+    configure<PublishingExtension> {
+        repositories {
+            maven {
+                name = "PersionCalendar"
+                url = uri("https://maven.pkg.github.com/ALISCHILLER/Date-Picker-Persian-Compose")
+                credentials {
+                    username = "ALISCHILLER"
+                    password = "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"
+                }
+            }
+        }
+        publications {
+            register<MavenPublication>("release") {
+                version = "0.1.6"
+            }
+        }
+    }
+}
+
