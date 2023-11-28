@@ -119,52 +119,55 @@ dependencies {
 //    sign(publishing.publications)
 //}
 
-publishing {
-    publications {
-        register<MavenPublication>("release") {
-//            groupId = "com.msa"
-//            artifactId = "calendar"
+//publishing {
+//    publications {
+//        register<MavenPublication>("release") {
+////            groupId = "com.msa"
+////            artifactId = "calendar"
 //            version = "0.1.6"
-//            artifact("$buildDir/outputs/aar/calendar-release.aar")
+////            artifact("$buildDir/outputs/aar/calendar-release.aar")
+//
+//            pom {
+//                name.set("PersionCalendar")
+//                description.set("An extensible Persian calendar for the Jetpack Compose system.")
+//                url.set("https://github.com/ALISCHILLER/Date-Picker-Persian-Compose")
+//                licenses {
+//                    license {
+//                        name.set("GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007")
+//                        url.set("https://www.gnu.org/licenses/gpl-3.0.en.html#license-text")
+//                        distribution.set("https://www.gnu.org/licenses/gpl-3.0.en.html#license-text")
+//                    }
+//                }
+//                developers {
+//                    developer {
+//                        id.set("ALISCHILLER")
+//                        name.set("ALI Soleimani")
+//                        url.set("https://github.com/ALISCHILLER")
+//                    }
+//                }
+//                scm {
+//                    url.set("https://github.com/ALISCHILLER/Date-Picker-Persian-Compose")
+//                    connection.set("scm:git:git://ALISCHILLER/Date-Picker-Persian-Compose.git")
+//                    developerConnection.set("scm:git:ssh://git@github.com:codeandtheory/YCharts.git")
+//                }
+//            }
+//        }
+//    }
+//
+//    repositories {
+//        maven {
+//            name = "PersionCalendar"
+//            url = uri("https://maven.pkg.github.com/ALISCHILLER/Date-Picker-Persian-Compose")
+//            credentials {
+//                username = ""
+//                password = ""
+//            }
+//        }
+//    }
+//}
 
-            pom {
-                name.set("PersionCalendar")
-                description.set("An extensible Persian calendar for the Jetpack Compose system.")
-                url.set("https://github.com/ALISCHILLER/Date-Picker-Persian-Compose")
-                licenses {
-                    license {
-                        name.set("GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007")
-                        url.set("https://www.gnu.org/licenses/gpl-3.0.en.html#license-text")
-                        distribution.set("https://www.gnu.org/licenses/gpl-3.0.en.html#license-text")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("ALISCHILLER")
-                        name.set("ALI Soleimani")
-                        url.set("https://github.com/ALISCHILLER")
-                    }
-                }
-                scm {
-                    url.set("https://github.com/ALISCHILLER/Date-Picker-Persian-Compose")
-                    connection.set("scm:git:git://ALISCHILLER/Date-Picker-Persian-Compose.git")
-                    developerConnection.set("scm:git:ssh://git@github.com:codeandtheory/YCharts.git")
-                }
-            }
-        }
-    }
 
-    repositories {
-        maven {
-            name = "PersionCalendar"
-            url = uri("https://maven.pkg.github.com/ALISCHILLER/Date-Picker-Persian-Compose")
-            credentials {
-                username = "ALISCHILLER"
-                password = "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"
-            }
-        }
-    }
-}
+
 
 
 
