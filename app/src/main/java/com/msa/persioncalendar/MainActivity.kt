@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.msa.calendar.CalendarScreen
+import com.msa.calendar.RangeCalendarScreen
 import com.msa.calendar.ui.theme.PersionCalendarTheme
 
 class MainActivity : ComponentActivity() {
@@ -53,9 +54,13 @@ class MainActivity : ComponentActivity() {
                         }
                         if (!hideDatePicker) {
                             // *************************************************
-                            CalendarScreen(
+//                            CalendarScreen(
+//                                onDismiss = { hideDatePicker = true },
+//                                onConfirm = { setDate = it }
+//                            )
+                            RangeCalendarScreen(
                                 onDismiss = { hideDatePicker = true },
-                                onConfirm = { setDate = it }
+                                setDate = { }
                             )
                             // *************************************************
                         }

@@ -1,10 +1,8 @@
 package com.msa.calendar.ui.view
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -28,20 +26,25 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.msa.calendar.components.shadow
-import com.msa.calendar.ui.theme.*
+import com.msa.calendar.ui.theme.Purple40
+import com.msa.calendar.ui.theme.PurpleGrey80
 import com.msa.calendar.utils.JlResDimens
 import com.msa.calendar.utils.getweekDay
 
 @Composable
-fun DayOfWeekView(
+fun DayOfWeekRangeView(
     mMonth: String,
     mDay: String,
     mYear: String,
-    setDay: (String) -> Unit,
+    startDate: List<String>,
+    endDate: List<String>,
+    setStartDate: (List<String>) -> Unit,
+    setEndDate: (List<String>) -> Unit,
     changeSelectedPart: (String) -> Unit
 ) {
     val daysList = getweekDay(mMonth, mYear)
@@ -61,7 +64,7 @@ fun DayOfWeekView(
             Text(text = "ی", color = Color.Black)
             Text(text = "ش", color = Color.Black)
         }
-
+        
         CompositionLocalProvider(
             LocalLayoutDirection provides LayoutDirection.Rtl
         ) {
@@ -75,7 +78,9 @@ fun DayOfWeekView(
                 horizontalArrangement = Arrangement.Center
             ) {
                 items(daysList) {
-                    Surface(
+                  
+                  var da="$mYear $mMonth $it"
+                   Surface(
                         modifier = Modifier
                             .aspectRatio(1f, true)
                             .padding(4.dp)
@@ -101,10 +106,18 @@ fun DayOfWeekView(
                             .clickable {
                                 if (it != " ") {
                                     changeSelectedPart("main")
-                                    setDay(it)
+                                  //  setDay(it)
+                                    if (startDate.isNotEmpty())
+                                        setStartDate(listOf("$mYear $mMonth $it"))
+                                    else
+                                        setEndDate(listOf("$mYear $mMonth $it"))
                                 }
                             },
-                        color = if (mDay == it) Color.Blue else Color.White,
+
+                        color =
+                            if(startDate.isNullOrEmpty())
+                                Color.Blue else Color.White
+                       ,
 //                    border = BorderStroke(1.dp, color = Color.White)
                     ) {
                         Row(
@@ -130,4 +143,18 @@ fun DayOfWeekView(
     }
 
 
+}
+
+@Preview
+@Composable
+fun DayOfWeekRangeViewPreview() {
+    DayOfWeekRangeView(
+        mMonth = "5",
+        mDay = "10",
+        mYear = "2024",
+        startDate = listOf(),
+        endDate =  listOf(),
+        setStartDate = {},
+        setEndDate = {}
+    ) {}
 }

@@ -88,7 +88,7 @@ fun CalendarView(
 
                 Text(
                     modifier = Modifier.padding(5.dp),
-                    text = "$mYear $mMonth  $mDay",
+                    text = "$mYear $mMonth $mDay",
                     color = Color.White,
                     style = TextStyle(),
                     fontWeight = FontWeight.Bold,

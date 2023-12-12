@@ -19,21 +19,26 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.msa.calendar.ui.view.CalendarView
-import com.msa.calendar.ui.view.DayOfWeekView
+import com.msa.calendar.ui.view.DayOfWeekRangeView
 import com.msa.calendar.ui.view.MonthView
 import com.msa.calendar.ui.view.YearsView
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.PickerType
 import com.msa.calendar.utils.toPersianNumber
+
+
+
 
 @Composable
 fun RangeCalendarScreen(
@@ -63,11 +68,11 @@ fun RangeCalendarScreen(
         mutableStateOf(PickerType.Day)
     }
 
-    var startDate by remember {
-        mutableStateOf(listOf(year, month, today))
+    var startDate  by remember {
+        mutableStateOf(mutableListOf<String>())
     }
     var endDate by remember {
-        mutableStateOf(listOf(year, month, today))
+        mutableStateOf(mutableListOf<String>())
     }
     Dialog(
         onDismissRequest = { onDismiss(true) },
@@ -111,13 +116,15 @@ fun RangeCalendarScreen(
 
                     Crossfade(pickerType, label = "") { it ->
                         when (it) {
-                            PickerType.Day -> DayOfWeekView(
+                            PickerType.Day -> DayOfWeekRangeView(
                                 mMonth = mMonth,
                                 mDay = mDay,
                                 mYear = mYear,
-                                setDay = { mDay = it },
-                                {}
-                            )
+                                startDate = startDate,
+                                endDate =  endDate,
+                                setStartDate = {startDate= it.toMutableList() },
+                                setEndDate = {endDate= it.toMutableList() }
+                            ) {}
 
                             PickerType.Year -> YearsView(
                                 mYear = mYear,
@@ -151,4 +158,16 @@ fun RangeCalendarScreen(
             }
         }
     }
+}
+
+@Composable
+@Preview(showBackground = true)
+fun RangeCalendarScreenPreview() {
+    var hideDatePicker by remember {
+        mutableStateOf(true)
+    }
+    RangeCalendarScreen(
+        onDismiss = { hideDatePicker = true },
+        {}
+    )
 }
