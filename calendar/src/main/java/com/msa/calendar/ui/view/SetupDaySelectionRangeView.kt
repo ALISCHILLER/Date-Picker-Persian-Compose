@@ -43,6 +43,7 @@ fun DayOfWeekRangeView(
     mYear: String,
     startDate: List<String>,
     endDate: List<String>,
+    setDay :(String) -> Unit,
     setStartDate: (List<String>) -> Unit,
     setEndDate: (List<String>) -> Unit,
     changeSelectedPart: (String) -> Unit
@@ -106,8 +107,8 @@ fun DayOfWeekRangeView(
                             .clickable {
                                 if (it != " ") {
                                     changeSelectedPart("main")
-                                  //  setDay(it)
-                                    if (startDate.isNotEmpty())
+                                    setDay(it)
+                                    if (startDate.isNullOrEmpty())
                                         setStartDate(listOf("$mYear $mMonth $it"))
                                     else
                                         setEndDate(listOf("$mYear $mMonth $it"))
@@ -115,9 +116,14 @@ fun DayOfWeekRangeView(
                             },
 
                         color =
-                            if(startDate.isNullOrEmpty())
-                                Color.Blue else Color.White
-                       ,
+                        decideDayColor(
+                            it,
+                            startDate,
+                            endDate,
+                            mYear,
+                            mMonth,
+                            mDay
+                        ),
 //                    border = BorderStroke(1.dp, color = Color.White)
                     ) {
                         Row(
@@ -145,6 +151,21 @@ fun DayOfWeekRangeView(
 
 }
 
+
+@Composable
+private fun decideDayColor(day : String, startDate: List<String>, endDate: List<String>,
+                           myears : String, mMonth : String,mday : String) : Color {
+    if (!day.isNullOrEmpty()){
+        val data="$myears$mMonth$mday"
+        if (!startDate.isNullOrEmpty() && startDate.get(0).toInt()>data.toInt() ){
+            return Color.Blue
+        }
+        else if (day==mday)
+            return Color.Blue
+    }
+    return Color.White
+}
+
 @Preview
 @Composable
 fun DayOfWeekRangeViewPreview() {
@@ -154,7 +175,9 @@ fun DayOfWeekRangeViewPreview() {
         mYear = "2024",
         startDate = listOf(),
         endDate =  listOf(),
+        setDay = {},
         setStartDate = {},
         setEndDate = {}
-    ) {}
+    )
+    {}
 }

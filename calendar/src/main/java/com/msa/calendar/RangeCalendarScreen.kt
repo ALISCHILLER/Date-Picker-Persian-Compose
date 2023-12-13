@@ -122,6 +122,7 @@ fun RangeCalendarScreen(
                                 mYear = mYear,
                                 startDate = startDate,
                                 endDate =  endDate,
+                                setDay={mDay=it},
                                 setStartDate = {startDate= it.toMutableList() },
                                 setEndDate = {endDate= it.toMutableList() }
                             ) {}
