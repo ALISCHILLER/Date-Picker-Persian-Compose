@@ -56,6 +56,9 @@ fun RangeCalendarScreen(
     var mMonth by remember {
         mutableStateOf(monthsList[month - 1])
     }
+    var mMonthin by remember {
+        mutableStateOf(month.toPersianNumber())
+    }
 
     var mYear by remember {
         mutableStateOf(year.toPersianNumber())
@@ -118,6 +121,7 @@ fun RangeCalendarScreen(
                         when (it) {
                             PickerType.Day -> DayOfWeekRangeView(
                                 mMonth = mMonth,
+                                mMonthint=mMonthin.toString(),
                                 mDay = mDay,
                                 mYear = mYear,
                                 startDate = startDate,

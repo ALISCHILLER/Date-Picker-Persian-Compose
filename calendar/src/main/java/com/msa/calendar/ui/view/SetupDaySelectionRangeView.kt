@@ -39,11 +39,12 @@ import com.msa.calendar.utils.getweekDay
 @Composable
 fun DayOfWeekRangeView(
     mMonth: String,
+    mMonthint: String,
     mDay: String,
     mYear: String,
     startDate: List<String>,
     endDate: List<String>,
-    setDay :(String) -> Unit,
+    setDay: (String) -> Unit,
     setStartDate: (List<String>) -> Unit,
     setEndDate: (List<String>) -> Unit,
     changeSelectedPart: (String) -> Unit
@@ -65,7 +66,7 @@ fun DayOfWeekRangeView(
             Text(text = "ی", color = Color.Black)
             Text(text = "ش", color = Color.Black)
         }
-        
+
         CompositionLocalProvider(
             LocalLayoutDirection provides LayoutDirection.Rtl
         ) {
@@ -79,9 +80,8 @@ fun DayOfWeekRangeView(
                 horizontalArrangement = Arrangement.Center
             ) {
                 items(daysList) {
-                  
-                  var da="$mYear $mMonth $it"
-                   Surface(
+
+                    Surface(
                         modifier = Modifier
                             .aspectRatio(1f, true)
                             .padding(4.dp)
@@ -109,9 +109,9 @@ fun DayOfWeekRangeView(
                                     changeSelectedPart("main")
                                     setDay(it)
                                     if (startDate.isNullOrEmpty())
-                                        setStartDate(listOf("$mYear $mMonth $it"))
+                                        setStartDate(listOf("$mYear$mMonthint$it"))
                                     else
-                                        setEndDate(listOf("$mYear $mMonth $it"))
+                                        setEndDate(listOf("$mYear$mMonthint$it"))
                                 }
                             },
 
@@ -121,7 +121,7 @@ fun DayOfWeekRangeView(
                             startDate,
                             endDate,
                             mYear,
-                            mMonth,
+                            mMonthint,
                             mDay
                         ),
 //                    border = BorderStroke(1.dp, color = Color.White)
@@ -150,17 +150,59 @@ fun DayOfWeekRangeView(
 
 
 }
+private fun setStartEndDates(
+    day: String,
+    month : Int,
+    startDate: List<Int>,
+    endDate: List<Int>,
+    start : Boolean,
+    setStartDate: (List<Int>) -> Unit,
+    setEndDate: (List<Int>) -> Unit,
+    setEndBool : (Boolean) -> Unit,
+    setStartBool : (Boolean) -> Unit
+){
+    if (day != " "){
+        if (!start) {
+            setStartDate(listOf(startDate[0], month , day.toInt()))
+            setStartBool(true)
+        } else if (day.toInt() == startDate[2] && month == startDate[1]){
+            setStartBool(false)
+            setEndBool(false)
 
+        } else if (month == startDate[1]) {
+            if (day.toInt() < startDate[2]){
+                setEndDate(startDate)
+                setStartDate(listOf(startDate[0], month , day.toInt()))
+                setEndBool(true)
+            } else {
+                setEndDate(listOf(startDate[0], month , day.toInt()))
+                setEndBool(true)
+            }
+        } else if (month < startDate[1]){
+            setEndDate(startDate)
+            setStartDate(listOf(startDate[0], month , day.toInt()))
+            setEndBool(true)
+        } else {
+            setEndDate(listOf(startDate[0], month , day.toInt()))
+            setEndBool(true)
+        }
+    }
+}
 
 @Composable
-private fun decideDayColor(day : String, startDate: List<String>, endDate: List<String>,
-                           myears : String, mMonth : String,mday : String) : Color {
-    if (!day.isNullOrEmpty()){
-        val data="$myears$mMonth$mday"
-        if (!startDate.isNullOrEmpty() && startDate.get(0).toInt()>data.toInt() ){
+private fun decideDayColor(
+    day: String, startDate: List<String>, endDate: List<String>,
+    myears: String, mMonth: String, mday: String
+): Color {
+    if (day !=" ") {
+        val data = "$myears$mMonth$day"
+        if (!startDate.isNullOrEmpty() &&
+            startDate.get(0).toInt() < data.toInt() &&
+            !endDate.isNullOrEmpty() &&
+            endDate.get(0).toInt() > data.toInt()
+            ) {
             return Color.Blue
-        }
-        else if (day==mday)
+        } else if (day == mday)
             return Color.Blue
     }
     return Color.White
@@ -171,10 +213,11 @@ private fun decideDayColor(day : String, startDate: List<String>, endDate: List<
 fun DayOfWeekRangeViewPreview() {
     DayOfWeekRangeView(
         mMonth = "5",
+        mMonthint = "5",
         mDay = "10",
         mYear = "2024",
         startDate = listOf(),
-        endDate =  listOf(),
+        endDate = listOf(),
         setDay = {},
         setStartDate = {},
         setEndDate = {}
