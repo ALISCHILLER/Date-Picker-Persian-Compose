@@ -105,27 +105,19 @@ fun DayOfWeekRangeView(
                             )
                             .clip(RoundedCornerShape(14.dp))
                             .clickable {
-                                setStartEndDates(
-                                    day = it,
-                                    myears=mYear,
-                                    mMonth=mMonthint,
-                                    mday=mDay,
-                                    startDate=startDate,
-                                    endDate=endDate,
-                                    setstartDate = {setStartDate(it)},
-                                    setendDate={setEndDate(it)},
-                                    setDay={setDay(it)}
-                                    )
+                                setStartEndDates(day = it,
+                                    myears = mYear,
+                                    mMonth = mMonthint,
+                                    mday = mDay,
+                                    startDate = startDate,
+                                    endDate = endDate,
+                                    setstartDate = { setStartDate(it) },
+                                    setendDate = { setEndDate(it) },
+                                    setDay = { setDay(it) })
                             },
 
-                        color =
-                        decideDayColor(
-                            it,
-                            startDate,
-                            endDate,
-                            mYear,
-                            mMonthint,
-                            mDay
+                        color = decideDayColor(
+                            it, startDate, endDate, mYear, mMonthint, mDay
                         ),
 //                    border = BorderStroke(1.dp, color = Color.White)
                     ) {
@@ -138,12 +130,7 @@ fun DayOfWeekRangeView(
                                 text = it,
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = decideTextDayColor(
-                                    it,
-                                    startDate,
-                                    endDate,
-                                    mYear,
-                                    mMonthint,
-                                    mDay
+                                    it, startDate, endDate, mYear, mMonthint, mDay
                                 ),
                                 fontSize = 20.sp,
                                 fontFamily = FontFamily.Cursive
@@ -169,55 +156,88 @@ private fun setStartEndDates(
     endDate: List<String>,
     setstartDate: (List<String>) -> Unit,
     setendDate: (List<String>) -> Unit,
-    setDay:(String)-> Unit
+    setDay: (String) -> Unit
 
-    ) {
+) {
     if (day != " ") {
 
-        val data = "$myears$mMonth$day"
         if (startDate.isEmpty()) {
-            setstartDate(listOf(data))
+            setstartDate(listOf(myears, mMonth, day))
             setDay(day)
-        }else if (startDate.get(0).toInt() >= data.toInt()){
-            setstartDate(listOf(data))
+        } else if (startDate.get(0).toInt() == myears.toInt() && startDate.get(1)
+                .toInt() == mMonth.toInt() && startDate.get(2).toInt() > day.toInt()
+        ) {
+            setstartDate(listOf(myears, mMonth, day))
             setDay(day)
-        }else{
-            setendDate(listOf(data))
+        } else if (startDate.get(0).toInt() > myears.toInt() || startDate.get(1)
+                .toInt() > mMonth.toInt()
+        ) {
+            setstartDate(listOf(myears, mMonth, day))
+            setDay(day)
+        } else {
+            setendDate(listOf(myears, mMonth, day))
         }
     }
 
 }
+
 @Composable
 private fun decideTextDayColor(
-    day: String, startDate: List<String>, endDate: List<String>,
-    myears: String, mMonth: String, mday: String
+    day: String,
+    startDate: List<String>,
+    endDate: List<String>,
+    myears: String,
+    mMonth: String,
+    mday: String
 ): Color {
     if (day != " ") {
         val data = "$myears$mMonth$day"
-        if (startDate.isNotEmpty() &&
-            startDate.get(0).toInt() <= data.toInt() &&
-            endDate.isNotEmpty() &&
-            endDate.get(0).toInt() >= data.toInt()
-        ) {
-            return Color.White
-        } else if (day == mday)
-            return Color.White
+        if (startDate.isNotEmpty() && endDate.isNotEmpty()) {
+            if (startDate.get(0).toInt() <= myears.toInt() &&
+                startDate.get(1).toInt() <= mMonth.toInt() &&
+                (endDate.get(0).toInt() >= myears.toInt() &&
+                        endDate.get(1).toInt() >= mMonth.toInt())
+            ) {
+                if (startDate.get(2).toInt() <= day.toInt() &&
+                    endDate.get(2).toInt() >= day.toInt()
+                )
+                    return Color.White
+            }
+        } else if (day == mday) return Color.White
     }
     return Color.Black
 }
+
 @Composable
 private fun decideDayColor(
-    day: String, startDate: List<String>, endDate: List<String>,
-    myears: String, mMonth: String, mday: String
+    day: String,
+    startDate: List<String>,
+    endDate: List<String>,
+    myears: String,
+    mMonth: String,
+    mday: String
 ): Color {
     if (day != " ") {
         val data = "$myears$mMonth$day"
-        if (startDate.isNotEmpty() &&
-            startDate.get(0).toInt() <= data.toInt() &&
-            endDate.isNotEmpty() &&
-            endDate.get(0).toInt() >= data.toInt()
-        ) {
-            return Color.Blue
+        if (startDate.isNotEmpty() && endDate.isNotEmpty()) {
+            if (startDate.get(0).toInt() < myears.toInt() &&
+                startDate.get(1).toInt() < mMonth.toInt() &&
+                endDate.get(0).toInt() > myears.toInt() &&
+                endDate.get(1).toInt() > mMonth.toInt()
+            ) {
+                return Color.Blue
+            } else if (
+                startDate.get(0).toInt() == myears.toInt() &&
+                startDate.get(1).toInt() == mMonth.toInt() &&
+                endDate.get(0).toInt() == myears.toInt() &&
+                endDate.get(1).toInt() == mMonth.toInt()
+            ) {
+                if (
+                    startDate.get(2).toInt() <= day.toInt() &&
+                    endDate.get(2).toInt() >= day.toInt()
+                    )
+                    return Color.Blue
+            }
         } else if (day == mday)
             return Color.Blue
     }
@@ -227,8 +247,7 @@ private fun decideDayColor(
 @Preview
 @Composable
 fun DayOfWeekRangeViewPreview() {
-    DayOfWeekRangeView(
-        mMonth = "5",
+    DayOfWeekRangeView(mMonth = "5",
         mMonthint = "5",
         mDay = "10",
         mYear = "2024",
@@ -236,7 +255,5 @@ fun DayOfWeekRangeViewPreview() {
         endDate = listOf(),
         setDay = {},
         setStartDate = {},
-        setEndDate = {}
-    )
-    {}
+        setEndDate = {}) {}
 }
