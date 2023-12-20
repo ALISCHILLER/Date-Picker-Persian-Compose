@@ -38,17 +38,15 @@ import com.msa.calendar.utils.PickerType
 import com.msa.calendar.utils.toPersianNumber
 
 
-
-
 @Composable
 fun RangeCalendarScreen(
     onDismiss: (Boolean) -> Unit,
-    setDate : (List<Map<String, String>>) -> Unit
+    setDate: (List<Map<String, String>>) -> Unit
 ) {
     val today = PersionCalendar().getDay()
     val month = PersionCalendar().getMonth()
     val year = PersionCalendar().getYear()
-    var monthh:String
+    var monthh: String
     val monthsList = listOf(
         "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد",
         "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند",
@@ -71,11 +69,11 @@ fun RangeCalendarScreen(
         mutableStateOf(PickerType.Day)
     }
 
-    var startDate  by remember {
-        mutableStateOf(mutableListOf<String>())
+    var startDate by remember {
+        mutableStateOf(mutableListOf<Int>())
     }
     var endDate by remember {
-        mutableStateOf(mutableListOf<String>())
+        mutableStateOf(mutableListOf<Int>())
     }
     Dialog(
         onDismissRequest = { onDismiss(true) },
@@ -112,23 +110,23 @@ fun RangeCalendarScreen(
                         mYear = mYear,
                         pickerTypeChang = { pickerType = it },
                         pickerType = pickerType,
-                        setDay = {mDay = it},
-                        setMonth = {mMonth = it},
-                        setYear = {mYear = it}
+                        setDay = { mDay = it },
+                        setMonth = { mMonth = it },
+                        setYear = { mYear = it }
                     )
 
                     Crossfade(pickerType, label = "") { it ->
                         when (it) {
                             PickerType.Day -> DayOfWeekRangeView(
                                 mMonth = mMonth,
-                                mMonthint=mMonthin.toString(),
+                                mMonthint = mMonthin.toString(),
                                 mDay = mDay,
                                 mYear = mYear,
                                 startDate = startDate,
-                                endDate =  endDate,
-                                setDay={mDay=it},
-                                setStartDate = {startDate= it.toMutableList() },
-                                setEndDate = {endDate= it.toMutableList() }
+                                endDate = endDate,
+                                setDay = { mDay = it },
+                                setStartDate = { startDate = it.toMutableList() },
+                                setEndDate = { endDate = it.toMutableList() }
                             ) {}
 
                             PickerType.Year -> YearsView(
@@ -138,7 +136,8 @@ fun RangeCalendarScreen(
 
                             PickerType.Month -> MonthView(
                                 mMonth = mMonth,
-                                onMonthClick = { mMonth = it }
+                                onMonthClick = { mMonth = it },
+                                setMonth = { mMonthin = it }
                             )
 
                         }
@@ -147,15 +146,15 @@ fun RangeCalendarScreen(
                         TextButton(
                             modifier = Modifier.padding(horizontal = 8.dp),
                             onClick = {
-                                monthh  = (monthsList.indexOf(mMonth) + 1).toPersianNumber()
-                               // onConfirm("$mYear / $monthh / $mDay")
+                                monthh = (monthsList.indexOf(mMonth) + 1).toPersianNumber()
+                                // onConfirm("$mYear / $monthh / $mDay")
                                 onDismiss(true)
                             }) {
                             Text(text = "تایید")
                         }
                         TextButton(
                             modifier = Modifier.padding(horizontal = 8.dp),
-                            onClick = {  onDismiss(true) }) {
+                            onClick = { onDismiss(true) }) {
                             Text(text = "انصراف")
                         }
                     }

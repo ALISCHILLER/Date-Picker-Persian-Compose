@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.msa.calendar.R
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.toPersianNumber
+import java.time.Month
 
 
 @Preview
@@ -32,13 +34,16 @@ import com.msa.calendar.utils.toPersianNumber
 fun MonthViewPreview() {
     MonthView(
         "3",
+        {},
         {}
     )
 }
+
 @Composable
 fun MonthView(
     mMonth: String,
     onMonthClick: (String) -> Unit,
+    setMonth: (String) ->Unit
 ) {
 
     val monthsList = listOf(
@@ -75,10 +80,11 @@ fun MonthView(
         LazyVerticalGrid(
             modifier = baseViewModifier,
             columns = GridCells.Fixed(3),
-        ){
-            items(monthsList){
+        ) {
+            itemsIndexed(monthsList) { index, it ->
                 val selected = mMonth == it
-                val thisMonth =  it == PersionCalendar().getMonth().toPersianNumber()
+                val thisMonth = it == PersionCalendar().getMonth().toPersianNumber()
+                val manth = index+1
                 val disabled = mMonth.contains(it)
                 val textStyle =
                     when {
@@ -90,7 +96,10 @@ fun MonthView(
                 val baseModifier = Modifier
                     .wrapContentWidth()
                     .padding(dimensionResource(R.dimen.scd_small_50))
-                    .clickable(!disabled) { onMonthClick(it) }
+                    .clickable(!disabled) {
+                        onMonthClick(it)
+                        setMonth(manth.toPersianNumber())
+                    }
 
                 val normalModifier = baseModifier
                     .clip(MaterialTheme.shapes.small)
@@ -118,8 +127,8 @@ fun MonthView(
                         modifier = Modifier
                             .padding(horizontal = dimensionResource(R.dimen.scd_small_150))
                             .padding(vertical = dimensionResource(R.dimen.scd_small_100)),
-                        text =it ,
-                        color=textAlpha,
+                        text = it,
+                        color = textAlpha,
                         style = textStyle,
                         textAlign = TextAlign.Center,
                         fontSize = 15.sp,

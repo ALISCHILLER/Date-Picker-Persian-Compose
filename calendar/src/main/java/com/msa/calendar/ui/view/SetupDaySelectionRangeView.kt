@@ -33,8 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.msa.calendar.components.shadow
 import com.msa.calendar.ui.theme.Purple40
 import com.msa.calendar.ui.theme.PurpleGrey80
-import com.msa.calendar.utils.JlResDimens
-import com.msa.calendar.utils.getweekDay
+import com.msa.calendar.utils.*
 
 @Composable
 fun DayOfWeekRangeView(
@@ -42,11 +41,11 @@ fun DayOfWeekRangeView(
     mMonthint: String,
     mDay: String,
     mYear: String,
-    startDate: List<String>,
-    endDate: List<String>,
+    startDate: List<Int>,
+    endDate: List<Int>,
     setDay: (String) -> Unit,
-    setStartDate: (List<String>) -> Unit,
-    setEndDate: (List<String>) -> Unit,
+    setStartDate: (List<Int>) -> Unit,
+    setEndDate: (List<Int>) -> Unit,
     changeSelectedPart: (String) -> Unit
 ) {
     val daysList = getweekDay(mMonth, mYear)
@@ -58,13 +57,9 @@ fun DayOfWeekRangeView(
                 .padding(vertical = 18.dp),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            Text(text = "ج", color = Color.Black)
-            Text(text = "پ", color = Color.Black)
-            Text(text = "چ", color = Color.Black)
-            Text(text = "س", color = Color.Black)
-            Text(text = "د", color = Color.Black)
-            Text(text = "ی", color = Color.Black)
-            Text(text = "ش", color = Color.Black)
+            listOf("ج", "پ", "چ", "س", "د", "ی", "ش").forEach { day ->
+                Text(text = day, color = Color.Black)
+            }
         }
 
         CompositionLocalProvider(
@@ -79,14 +74,14 @@ fun DayOfWeekRangeView(
                 verticalArrangement = Arrangement.Top,
                 horizontalArrangement = Arrangement.Center
             ) {
-                items(daysList) {
+                items(daysList) { day ->
 
                     Surface(
                         modifier = Modifier
                             .aspectRatio(1f, true)
                             .padding(4.dp)
                             .shadow(
-                                color = if (mDay == it) Purple40 else PurpleGrey80,
+                                color = if (mDay == day) Purple40 else PurpleGrey80,
                                 borderRadius = 10.dp,
                                 offsetX = 0.0.dp,
                                 offsetY = 3.dp,
@@ -105,21 +100,10 @@ fun DayOfWeekRangeView(
                             )
                             .clip(RoundedCornerShape(14.dp))
                             .clickable {
-                                setStartEndDates(day = it,
-                                    myears = mYear,
-                                    mMonth = mMonthint,
-                                    mday = mDay,
-                                    startDate = startDate,
-                                    endDate = endDate,
-                                    setstartDate = { setStartDate(it) },
-                                    setendDate = { setEndDate(it) },
-                                    setDay = { setDay(it) })
+                                setStartEndDates(day, mYear, mMonthint, mDay, startDate, endDate, setStartDate, setEndDate, setDay)
                             },
 
-                        color = decideDayColor(
-                            it, startDate, endDate, mYear, mMonthint, mDay
-                        ),
-//                    border = BorderStroke(1.dp, color = Color.White)
+                        color = decideDayColor(day, startDate, endDate, mYear, mMonthint, mDay),
                     ) {
                         Row(
                             Modifier.fillMaxSize(),
@@ -127,24 +111,18 @@ fun DayOfWeekRangeView(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = it,
+                                text = day,
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = decideTextDayColor(
-                                    it, startDate, endDate, mYear, mMonthint, mDay
-                                ),
+                                color = decideTextDayColor(day, startDate, endDate, mYear, mMonthint, mDay),
                                 fontSize = 20.sp,
                                 fontFamily = FontFamily.Cursive
-
                             )
                         }
-
                     }
                 }
             }
         }
     }
-
-
 }
 
 private fun setStartEndDates(
@@ -152,97 +130,86 @@ private fun setStartEndDates(
     myears: String,
     mMonth: String,
     mday: String,
-    startDate: List<String>,
-    endDate: List<String>,
-    setstartDate: (List<String>) -> Unit,
-    setendDate: (List<String>) -> Unit,
+    startDate: List<Int>,
+    endDate: List<Int>,
+    setstartDate: (List<Int>) -> Unit,
+    setendDate: (List<Int>) -> Unit,
     setDay: (String) -> Unit
-
 ) {
-    if (day != " ") {
+    if (day.isNotEmpty()) {
+        val targetDateList = listOf(myears.toInt(), mMonth.toInt(), day.toInt())
 
-        if (startDate.isEmpty()) {
-            setstartDate(listOf(myears, mMonth, day))
+        fun isDateBefore() = startDate.isEmpty() || startDate.compareTo(targetDateList) > 0
+        fun isDateAfter() = endDate.isEmpty() || endDate.compareTo(targetDateList) < 0
+
+        if (isDateBefore()) {
+            setstartDate(targetDateList)
             setDay(day)
-        } else if (startDate.get(0).toInt() == myears.toInt() && startDate.get(1)
-                .toInt() == mMonth.toInt() && startDate.get(2).toInt() > day.toInt()
-        ) {
-            setstartDate(listOf(myears, mMonth, day))
-            setDay(day)
-        } else if (startDate.get(0).toInt() > myears.toInt() || startDate.get(1)
-                .toInt() > mMonth.toInt()
-        ) {
-            setstartDate(listOf(myears, mMonth, day))
-            setDay(day)
-        } else {
-            setendDate(listOf(myears, mMonth, day))
+        } else if (isDateAfter()) {
+            setendDate(targetDateList)
         }
     }
-
 }
 
-@Composable
 private fun decideTextDayColor(
     day: String,
-    startDate: List<String>,
-    endDate: List<String>,
+    startDate: List<Int>,
+    endDate: List<Int>,
     myears: String,
     mMonth: String,
     mday: String
 ): Color {
     if (day != " ") {
-        val data = "$myears$mMonth$day"
-        if (startDate.isNotEmpty() && endDate.isNotEmpty()) {
-            if (startDate.get(0).toInt() <= myears.toInt() &&
-                startDate.get(1).toInt() <= mMonth.toInt() &&
-                (endDate.get(0).toInt() >= myears.toInt() &&
-                        endDate.get(1).toInt() >= mMonth.toInt())
-            ) {
-                if (startDate.get(2).toInt() <= day.toInt() &&
-                    endDate.get(2).toInt() >= day.toInt()
-                )
-                    return Color.White
-            }
-        } else if (day == mday) return Color.White
+        val targetDate = PersionCalendar(myears.toInt(), mMonth.toInt(), day.toInt())
+        if (startDate.isNotEmpty() && endDate.isNotEmpty() && isDateInRange(targetDate, startDate, endDate)) {
+            return Color.White
+        } else if (day == mday && endDate.isEmpty()) {
+            return Color.White
+        }
     }
     return Color.Black
 }
 
-@Composable
 private fun decideDayColor(
     day: String,
-    startDate: List<String>,
-    endDate: List<String>,
+    startDate: List<Int>,
+    endDate: List<Int>,
     myears: String,
     mMonth: String,
     mday: String
 ): Color {
     if (day != " ") {
-        val data = "$myears$mMonth$day"
-        if (startDate.isNotEmpty() && endDate.isNotEmpty()) {
-            if (startDate.get(0).toInt() < myears.toInt() &&
-                startDate.get(1).toInt() < mMonth.toInt() &&
-                endDate.get(0).toInt() > myears.toInt() &&
-                endDate.get(1).toInt() > mMonth.toInt()
-            ) {
-                return Color.Blue
-            } else if (
-                startDate.get(0).toInt() == myears.toInt() &&
-                startDate.get(1).toInt() == mMonth.toInt() &&
-                endDate.get(0).toInt() == myears.toInt() &&
-                endDate.get(1).toInt() == mMonth.toInt()
-            ) {
-                if (
-                    startDate.get(2).toInt() <= day.toInt() &&
-                    endDate.get(2).toInt() >= day.toInt()
-                    )
-                    return Color.Blue
-            }
-        } else if (day == mday)
+        val targetDate = PersionCalendar(myears.toInt(), mMonth.toInt(), day.toInt())
+        if (startDate.isNotEmpty() && endDate.isNotEmpty() && isDateInRange(targetDate, startDate, endDate)) {
+            println("تاریخ مشخص شده در بازه تاریخ‌ها قرار دارد.")
             return Color.Blue
+        } else if (day == mday && endDate.isEmpty()) {
+            return Color.Blue
+        } else {
+            println("تاریخ مشخص شده خارج از بازه تاریخ‌ها است.")
+        }
     }
     return Color.White
 }
+
+fun isDateInRange(targetDate: PersionCalendar, startDate: List<Int>, endDate: List<Int>): Boolean {
+    return targetDate.isInRange(startDate, endDate)
+}
+
+fun PersionCalendar.isInRange(start: List<Int>, end: List<Int>): Boolean {
+    val targetList = listOf(this.getYear(), this.getMonth(), this.getDay())
+
+    for (i in 0 until minOf(targetList.size, start.size, end.size)) {
+        if (targetList[i] < start[i] || targetList[i] > end[i]) {
+            return false
+        } else if (targetList[i] < start[i] || targetList[i] > end[i]) {
+            continue
+        }
+    }
+
+    return true
+}
+
 
 @Preview
 @Composable

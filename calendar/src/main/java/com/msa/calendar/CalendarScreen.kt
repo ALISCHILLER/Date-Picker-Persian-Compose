@@ -123,7 +123,8 @@ fun CalendarScreen(
 
                             PickerType.Month -> MonthView(
                                 mMonth = mMonth,
-                                onMonthClick = { mMonth = it }
+                                onMonthClick = { mMonth = it },
+                                {}
                             )
 
                         }
