@@ -100,7 +100,17 @@ fun DayOfWeekRangeView(
                             )
                             .clip(RoundedCornerShape(14.dp))
                             .clickable {
-                                setStartEndDates(day, mYear, mMonthint, mDay, startDate, endDate, setStartDate, setEndDate, setDay)
+                                setStartEndDates(
+                                    day,
+                                    mYear,
+                                    mMonthint,
+                                    mDay,
+                                    startDate,
+                                    endDate,
+                                    setStartDate,
+                                    setEndDate,
+                                    setDay
+                                )
                             },
 
                         color = decideDayColor(day, startDate, endDate, mYear, mMonthint, mDay),
@@ -113,7 +123,14 @@ fun DayOfWeekRangeView(
                             Text(
                                 text = day,
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = decideTextDayColor(day, startDate, endDate, mYear, mMonthint, mDay),
+                                color = decideTextDayColor(
+                                    day,
+                                    startDate,
+                                    endDate,
+                                    mYear,
+                                    mMonthint,
+                                    mDay
+                                ),
                                 fontSize = 20.sp,
                                 fontFamily = FontFamily.Cursive
                             )
@@ -139,6 +156,7 @@ private fun setStartEndDates(
     if (day.isNotEmpty()) {
         val targetDateList = listOf(myears.toInt(), mMonth.toInt(), day.toInt())
 
+
         fun isDateBefore() = startDate.isEmpty() || startDate.compareTo(targetDateList) > 0
         fun isDateAfter() = endDate.isEmpty() || endDate.compareTo(targetDateList) < 0
 
@@ -146,7 +164,7 @@ private fun setStartEndDates(
             setstartDate(targetDateList)
             setDay(day)
         } else if (isDateAfter()) {
-            setendDate(targetDateList)
+                setendDate(targetDateList)
         }
     }
 }
@@ -161,7 +179,12 @@ private fun decideTextDayColor(
 ): Color {
     if (day != " ") {
         val targetDate = PersionCalendar(myears.toInt(), mMonth.toInt(), day.toInt())
-        if (startDate.isNotEmpty() && endDate.isNotEmpty() && isDateInRange(targetDate, startDate, endDate)) {
+        if (startDate.isNotEmpty() && endDate.isNotEmpty() && isDateInRange(
+                targetDate,
+                startDate,
+                endDate
+            )
+        ) {
             return Color.White
         } else if (day == mday && endDate.isEmpty()) {
             return Color.White
@@ -180,7 +203,12 @@ private fun decideDayColor(
 ): Color {
     if (day != " ") {
         val targetDate = PersionCalendar(myears.toInt(), mMonth.toInt(), day.toInt())
-        if (startDate.isNotEmpty() && endDate.isNotEmpty() && isDateInRange(targetDate, startDate, endDate)) {
+        if (startDate.isNotEmpty() && endDate.isNotEmpty() && isDateInRange(
+                targetDate,
+                startDate,
+                endDate
+            )
+        ) {
             println("تاریخ مشخص شده در بازه تاریخ‌ها قرار دارد.")
             return Color.Blue
         } else if (day == mday && endDate.isEmpty()) {
@@ -197,17 +225,26 @@ fun isDateInRange(targetDate: PersionCalendar, startDate: List<Int>, endDate: Li
 }
 
 fun PersionCalendar.isInRange(start: List<Int>, end: List<Int>): Boolean {
-    val targetList = listOf(this.getYear(), this.getMonth(), this.getDay())
+    val targetYear = this.getYear()
+    val targetMonth = this.getMonth()
+    val targetDay = this.getDay()
 
-    for (i in 0 until minOf(targetList.size, start.size, end.size)) {
-        if (targetList[i] < start[i] || targetList[i] > end[i]) {
-            return false
-        } else if (targetList[i] < start[i] || targetList[i] > end[i]) {
-            continue
-        }
+    val startYear = start[0]
+    val startMonth = start[1]
+    val startDay = start[2]
+
+    val endYear = end[0]
+    val endMonth = end[1]
+    val endDay = end[2]
+
+    return when {
+        targetYear < startYear || targetYear > endYear -> false
+        targetYear == startYear && targetMonth < startMonth -> false
+        targetYear == startYear && targetMonth == startMonth && targetDay < startDay -> false
+        targetYear == endYear && targetMonth > endMonth -> false
+        targetYear == endYear && targetMonth == endMonth && targetDay > endDay -> false
+        else -> true
     }
-
-    return true
 }
 
 
