@@ -147,7 +147,20 @@ fun RangeCalendarScreen(
                             modifier = Modifier.padding(horizontal = 8.dp),
                             onClick = {
                                 monthh = (monthsList.indexOf(mMonth) + 1).toPersianNumber()
-                                // onConfirm("$mYear / $monthh / $mDay")
+                                setDate(
+                                    listOf(
+                                        mapOf(
+                                            "day" to startDate[2].toString(),
+                                            "month" to startDate[1].toString(),
+                                            "year" to startDate[0].toString()
+                                        ),
+                                        mapOf(
+                                            "day" to endDate[2].toString(),
+                                            "month" to endDate[1].toString(),
+                                            "year" to endDate[0].toString()
+                                        )
+                                    )
+                                )
                                 onDismiss(true)
                             }) {
                             Text(text = "تایید")

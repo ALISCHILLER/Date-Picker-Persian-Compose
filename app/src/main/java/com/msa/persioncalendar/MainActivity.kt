@@ -60,7 +60,11 @@ class MainActivity : ComponentActivity() {
 //                            )
                             RangeCalendarScreen(
                                 onDismiss = { hideDatePicker = true },
-                                setDate = { }
+                                setDate = { list ->
+                                    var startDateMap = list[0] //mapOf("day" to day, "month" to month, "year" to year)
+                                    var endDateMap = list[1] //mapOf("day" to day, "month" to month, "year" to year)
+                                    setDate =(startDateMap + endDateMap).toString()
+                                }
                             )
                             // *************************************************
                         }
