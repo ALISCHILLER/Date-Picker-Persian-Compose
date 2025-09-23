@@ -36,24 +36,19 @@ import com.msa.calendar.ui.view.YearsView
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.PickerType
 import com.msa.calendar.utils.toPersianNumber
-
+import com.msa.calendar.utils.monthsList
 
 @Composable
 fun CalendarScreen(
     onDismiss: (Boolean) -> Unit,
     onConfirm: (String) -> Unit,
 ) {
-    val today = PersionCalendar().getDay()
-    val month = PersionCalendar().getMonth()
-    val year = PersionCalendar().getYear()
-    var monthh:String
-    val monthsList = listOf(
-        "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد",
-        "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند",
-    )
-    var mMonth by remember {
-        mutableStateOf(monthsList[month - 1])
-    }
+    val todayCalendar = remember { PersionCalendar() }
+    val today = todayCalendar.getDay()
+    val month = todayCalendar.getMonth()
+    val year = todayCalendar.getYear()
+    val initialMonth = monthsList.getOrElse(month - 1) { monthsList.first() }
+    var mMonth by remember { mutableStateOf(initialMonth) }
 
     var mYear by remember {
         mutableStateOf(year.toPersianNumber())
@@ -133,8 +128,10 @@ fun CalendarScreen(
                         TextButton(
                             modifier = Modifier.padding(horizontal = 8.dp),
                             onClick = {
-                                monthh  = (monthsList.indexOf(mMonth) + 1).toPersianNumber()
-                                onConfirm("$mYear / $monthh / $mDay")
+                                val monthIndex = monthsList.indexOf(mMonth)
+                                val monthNumber = if (monthIndex >= 0) monthIndex + 1 else month
+                                val monthValue = monthNumber.toPersianNumber()
+                                onConfirm("$mYear / $monthValue / $mDay")
                                 onDismiss(true)
                             }) {
                                 Text(text = "تایید")

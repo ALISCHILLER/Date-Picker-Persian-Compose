@@ -1,81 +1,84 @@
 package com.msa.calendar.utils
 
 
-val persianWeekDays = listOf("شنبه","یکشنبه","دوشنبه","سه شنبه",
-    "چهارشنبه","پنجشنبه","جمعه", )
+val persianWeekDays = listOf(
+    "شنبه",
+    "یکشنبه",
+    "دوشنبه",
+    "سه شنبه",
+    "چهارشنبه",
+    "پنجشنبه",
+    "جمعه",
+)
 
-val monthsList = listOf("فروردین", "اردیبهشت", "خرداد", "تیر",
-    "مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند",)
+val monthsList = listOf(
+    "فروردین",
+    "اردیبهشت",
+    "خرداد",
+    "تیر",
+    "مرداد",
+    "شهریور",
+    "مهر",
+    "آبان",
+    "آذر",
+    "دی",
+    "بهمن",
+    "اسفند",
+)
 
 
-fun getweekDay(mMonth: String, mYear: String): MutableList<String> {
-
-    val weekDay = PersionCalendar(mYear.toInt(),
-        monthsList.indexOf(mMonth) + 1, 1).dayOfWeek()
-    val daysList = mutableListOf<String>()
-
-    if (weekDay != 7){
-        for (i in 1..weekDay){
-            daysList.add(" ")
-        }
+fun getWeekDays(monthName: String, year: String): List<String> {
+    val monthIndex = monthsList.indexOf(monthName)
+    if (monthIndex == -1) {
+        return emptyList()
+    }
+    val yearInt = year.toIntSafely() ?: PersionCalendar().getYear()
+    val firstDayOfMonth = PersionCalendar(yearInt, monthIndex + 1, 1)
+    val weekDay = firstDayOfMonth.dayOfWeek()
+    val daysInMonth = when {
+        monthIndex < 6 -> 31
+        monthIndex < 11 -> 30
+        else -> if (PersionCalendar(yearInt, 12, 1).isLeap()) 30 else 29
     }
 
-    if (monthsList.indexOf(mMonth) < 6){
-        for (i in 1..31){
-            daysList.add(i.toPersianNumber())
+    return buildList {
+        if (weekDay != 7) {
+            repeat(weekDay) { add(" ") }
         }
-    } else {
-        for (i in 1..30){
-            daysList.add(i.toPersianNumber())
+        for (day in 1..daysInMonth) {
+            add(day.toPersianNumber())
         }
     }
-    return daysList
 }
 
 fun addLeadingZero(number: Int): String {
     return number.toString().padStart(2, '0')
 }
 
-fun List<String>.toIntList(): List<Int> {
-    return map { it.toInt() }
-}
-fun List<Int>.compareTo(other: List<Int>): Int {
-    for ((index, value) in withIndex()) {
-        if (index >= other.size) {
-            // This list is longer than the other list
-            return 1
+fun String.toEnglishDigits(): String {
+    if (isEmpty()) return this
+    val builder = StringBuilder(length)
+    for (character in this) {
+        val mappedChar = when (character) {
+            '۰', '٠' -> '0'
+            '۱', '١' -> '1'
+            '۲', '٢' -> '2'
+            '۳', '٣' -> '3'
+            '۴', '٤' -> '4'
+            '۵', '٥' -> '5'
+            '۶', '٦' -> '6'
+            '۷', '٧' -> '7'
+            '۸', '٨' -> '8'
+            '۹', '٩' -> '9'
+            else -> character
         }
-
-        if (value < other[index]) {
-            return -1
-        } else if (value > other[index]) {
-            return 1
-        }
+        builder.append(mappedChar)
     }
-
-    // Both lists are equal up to the length of the shorter list
-    return size.compareTo(other.size)
-}
-
-
-fun List<Int>.isBefore(other: List<Int>): Boolean {
-    for (i in 0 until minOf(size, other.size)) {
-        if (this[i] < other[i]) {
-            return true
-        } else if (this[i] > other[i]) {
-            return false
-        }
-    }
-    return false
+    return builder.toString()
 }
 
-fun List<Int>.isAfter(other: List<Int>): Boolean {
-    for (i in 0 until minOf(size, other.size)) {
-        if (this[i] > other[i]) {
-            return true
-        } else if (this[i] < other[i]) {
-            return false
-        }
-    }
-    return false
+fun String.toIntSafely(): Int? {
+    val normalized = toEnglishDigits().trim()
+    if (normalized.isEmpty()) return null
+    return normalized.toIntOrNull()
 }

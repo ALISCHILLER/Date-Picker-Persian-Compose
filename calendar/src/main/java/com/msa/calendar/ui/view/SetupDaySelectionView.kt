@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.msa.calendar.components.shadow
 import com.msa.calendar.ui.theme.*
 import com.msa.calendar.utils.JlResDimens
-import com.msa.calendar.utils.getweekDay
+import com.msa.calendar.utils.getWeekDays
 
 @Composable
 fun DayOfWeekView(
@@ -43,7 +43,7 @@ fun DayOfWeekView(
     setDay: (String) -> Unit,
     changeSelectedPart: (String) -> Unit
 ) {
-    val daysList = getweekDay(mMonth, mYear)
+    val daysList = getWeekDays(mMonth, mYear)
 
     Column {
         Row(
@@ -98,12 +98,12 @@ fun DayOfWeekView(
                             )
                             .clip(RoundedCornerShape(14.dp))
                             .clickable {
-                                if (it != " ") {
+                                if (it.isNotBlank()) {
                                     changeSelectedPart("main")
                                     setDay(it)
                                 }
                             },
-                        color = if (mDay == it) Color.Blue else Color.White,
+                        color = if (mDay == it) MaterialTheme.colorScheme.primary else Color.White,
 //                    border = BorderStroke(1.dp, color = Color.White)
                     ) {
                         Row(
@@ -114,7 +114,7 @@ fun DayOfWeekView(
                             Text(
                                 text = it,
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = if (mDay == it) Color.White
+                                color = if (mDay == it) MaterialTheme.colorScheme.onPrimary
                                 else Color.Black,
                                 fontSize = 20.sp,
                                 fontFamily = FontFamily.Cursive

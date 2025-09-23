@@ -1,13 +1,11 @@
 package com.msa.calendar.ui.view
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -19,14 +17,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.toPersianNumber
-import kotlinx.coroutines.DelicateCoroutinesApi
+import androidx.compose.runtime.LaunchedEffect
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class, DelicateCoroutinesApi::class)
-@SuppressLint("CoroutineCreationDuringComposition", "SuspiciousIndentation")
 @Composable
 fun YearsView(
     mYear: String,
@@ -37,18 +30,19 @@ fun YearsView(
     for (y in 1350..1450) {
         years.add(y.toPersianNumber())
     }
-    val yearListState = rememberLazyListState()
-    GlobalScope.launch(Dispatchers.Main) {
-        yearListState.scrollToItem(index = 45)
+    val yearListState = rememberLazyGridState()
+    LaunchedEffect(mYear) {
+        val targetIndex = years.indexOf(mYear)
+        if (targetIndex >= 0) {
+            yearListState.scrollToItem(index = targetIndex)
+        }
     }
 
-    val behavior = rememberSnapFlingBehavior(
-        lazyListState = yearListState,
-//        snapOffsetForItem = SnapOffsets.Center,
-    )
+
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
+        state = yearListState,
         horizontalArrangement = Arrangement.spacedBy(
             space = 4.dp,
             alignment = Alignment.CenterHorizontally

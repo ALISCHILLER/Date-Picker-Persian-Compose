@@ -397,4 +397,33 @@ class PersionCalendar {
         val month: Int = month
         val day: Int = day
     }
+
+    // داخل کلاس PersionCalendar
+    fun isInRange(startDate: List<Int>, endDate: List<Int>): Boolean {
+        require(startDate.size == 3 && endDate.size == 3) {
+            "Dates must be [year, month, day]"
+        }
+
+        val ty = getYear(); val tm = getMonth(); val td = getDay()
+        var sy = startDate[0]; var sm = startDate[1]; var sd = startDate[2]
+        var ey = endDate[0];   var em = endDate[1];   var ed = endDate[2]
+
+        fun cmp(y1: Int, m1: Int, d1: Int, y2: Int, m2: Int, d2: Int): Int =
+            when {
+                y1 != y2 -> y1 - y2
+                m1 != m2 -> m1 - m2
+                else     -> d1 - d2
+            }
+
+        // اگر تاریخ‌ها برعکس وارد شدند، جابجا کن
+        if (cmp(sy, sm, sd, ey, em, ed) > 0) {
+            val tY = sy; val tM = sm; val tD = sd
+            sy = ey; sm = em; sd = ed
+            ey = tY; em = tM; ed = tD
+        }
+
+        val afterOrEqStart = cmp(ty, tm, td, sy, sm, sd) >= 0
+        val beforeOrEqEnd  = cmp(ty, tm, td, ey, em, ed) <= 0
+        return afterOrEqStart && beforeOrEqEnd
+    }
 }

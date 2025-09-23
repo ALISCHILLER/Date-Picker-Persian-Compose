@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,48 +35,40 @@ import com.msa.calendar.ui.view.YearsView
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.PickerType
 import com.msa.calendar.utils.toPersianNumber
-
+import com.msa.calendar.utils.*
+import com.msa.calendar.utils.monthsList
 
 @Composable
 fun RangeCalendarScreen(
     onDismiss: (Boolean) -> Unit,
     setDate: (List<Map<String, String>>) -> Unit
 ) {
-    val today = PersionCalendar().getDay()
-    val month = PersionCalendar().getMonth()
-    val year = PersionCalendar().getYear()
-    var monthh: String
-    val monthsList = listOf(
-        "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد",
-        "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند",
-    )
-    var mMonth by remember {
-        mutableStateOf(monthsList[month - 1])
-    }
-    var mMonthin by remember {
-        mutableStateOf(month.toPersianNumber())
+    val todayCalendar = remember { PersionCalendar() }
+    val today = todayCalendar.getDay()
+    val month = todayCalendar.getMonth()
+    val year = todayCalendar.getYear()
+    val initialMonthName = monthsList.getOrElse(month - 1) { monthsList.first() }
+
+    var mMonth by remember { mutableStateOf(initialMonthName) }
+    var mMonthin by remember { mutableStateOf(month.toPersianNumber()) }
+    var mYear by remember { mutableStateOf(year.toPersianNumber()) }
+    var mDay by remember { mutableStateOf(today.toPersianNumber()) }
+
+    var pickerType: PickerType by remember { mutableStateOf(PickerType.Day) }
+
+    var startDate by remember { mutableStateOf<JalaliDate?>(null) }
+    var endDate by remember { mutableStateOf<JalaliDate?>(null) }
+
+    // ✅ CLOSE THIS LAMBDA
+    val updateMonthState: (String) -> Unit = { selectedMonth ->
+        mMonth = selectedMonth
+        val monthIndex = monthsList.indexOf(selectedMonth)
+        if (monthIndex >= 0) {
+            mMonthin = (monthIndex + 1).toPersianNumber()
+        }
     }
 
-    var mYear by remember {
-        mutableStateOf(year.toPersianNumber())
-    }
-
-    var mDay by remember {
-        mutableStateOf(today.toPersianNumber())
-    }
-    var pickerType: PickerType by remember {
-        mutableStateOf(PickerType.Day)
-    }
-
-    var startDate by remember {
-        mutableStateOf(mutableListOf<Int>())
-    }
-    var endDate by remember {
-        mutableStateOf(mutableListOf<Int>())
-    }
-    Dialog(
-        onDismissRequest = { onDismiss(true) },
-    ) {
+    Dialog(onDismissRequest = { onDismiss(true) }) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -85,10 +76,7 @@ fun RangeCalendarScreen(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                ) {
-                    // same action as in onDismissRequest
-                    onDismiss(true)
-                }
+                ) { onDismiss(true) }
         ) {
             Surface(
                 modifier = Modifier
@@ -97,7 +85,6 @@ fun RangeCalendarScreen(
                 shape = MaterialTheme.shapes.large,
                 tonalElevation = AlertDialogDefaults.TonalElevation,
             ) {
-
                 Column(
                     modifier = Modifier
                         .background(color = Color.White)
@@ -111,22 +98,22 @@ fun RangeCalendarScreen(
                         pickerTypeChang = { pickerType = it },
                         pickerType = pickerType,
                         setDay = { mDay = it },
-                        setMonth = { mMonth = it },
+                        setMonth = { monthName -> updateMonthState(monthName) },
                         setYear = { mYear = it }
                     )
 
-                    Crossfade(pickerType, label = "") { it ->
-                        when (it) {
+                    Crossfade(targetState = pickerType, label = "") { state ->
+                        when (state) {
                             PickerType.Day -> DayOfWeekRangeView(
                                 mMonth = mMonth,
-                                mMonthint = mMonthin.toString(),
+                                mMonthint = mMonthin, // it's already a String
                                 mDay = mDay,
                                 mYear = mYear,
                                 startDate = startDate,
                                 endDate = endDate,
                                 setDay = { mDay = it },
-                                setStartDate = { startDate = it.toMutableList() },
-                                setEndDate = { endDate = it.toMutableList() }
+                                setStartDate = { startDate = it },
+                                setEndDate = { endDate = it }
                             ) {}
 
                             PickerType.Year -> YearsView(
@@ -136,38 +123,36 @@ fun RangeCalendarScreen(
 
                             PickerType.Month -> MonthView(
                                 mMonth = mMonth,
-                                onMonthClick = { mMonth = it },
+                                onMonthClick = { updateMonthState(it) },
                                 setMonth = { mMonthin = it }
                             )
-
                         }
                     }
-                    Row() {
+
+                    val isRangeComplete = startDate != null && endDate != null
+
+                    Row {
                         TextButton(
                             modifier = Modifier.padding(horizontal = 8.dp),
+                            enabled = isRangeComplete,
                             onClick = {
-                                monthh = (monthsList.indexOf(mMonth) + 1).toPersianNumber()
+                                if (!isRangeComplete) return@TextButton
                                 setDate(
                                     listOf(
-                                        mapOf(
-                                            "day" to startDate[2].toString(),
-                                            "month" to startDate[1].toString(),
-                                            "year" to startDate[0].toString()
-                                        ),
-                                        mapOf(
-                                            "day" to endDate[2].toString(),
-                                            "month" to endDate[1].toString(),
-                                            "year" to endDate[0].toString()
-                                        )
+                                        startDate!!.toMap(usePersianDigits = false),
+                                        endDate!!.toMap(usePersianDigits = false)
                                     )
                                 )
                                 onDismiss(true)
-                            }) {
+                            }
+                        ) {
                             Text(text = "تایید")
                         }
+
                         TextButton(
                             modifier = Modifier.padding(horizontal = 8.dp),
-                            onClick = { onDismiss(true) }) {
+                            onClick = { onDismiss(true) }
+                        ) {
                             Text(text = "انصراف")
                         }
                     }
@@ -177,14 +162,12 @@ fun RangeCalendarScreen(
     }
 }
 
-@Composable
 @Preview(showBackground = true)
+@Composable
 fun RangeCalendarScreenPreview() {
-    var hideDatePicker by remember {
-        mutableStateOf(true)
-    }
+    var hideDatePicker by remember { mutableStateOf(true) }
     RangeCalendarScreen(
         onDismiss = { hideDatePicker = true },
-        {}
+        setDate = { _ -> } // ✅ accept the parameter
     )
 }

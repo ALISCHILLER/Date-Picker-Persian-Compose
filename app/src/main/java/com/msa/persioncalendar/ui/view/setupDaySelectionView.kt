@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import com.msa.calendar.utils.getweekDay
+import com.msa.calendar.utils.getWeekDays
 
 @Composable
 fun DayOfWeekView(
@@ -36,7 +36,7 @@ fun DayOfWeekView(
     setDay: (String) -> Unit,
     changeSelectedPart: (String) -> Unit
 ) {
-    val daysList = com.msa.calendar.utils.getweekDay(mMonth, mYear)
+    val daysList = getWeekDays(mMonth, mYear)
 
     Column {
     Row(

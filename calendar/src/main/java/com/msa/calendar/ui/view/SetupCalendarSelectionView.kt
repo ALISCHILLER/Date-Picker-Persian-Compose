@@ -35,6 +35,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.msa.calendar.utils.PickerType
+import com.msa.calendar.utils.monthsList
+import com.msa.calendar.utils.toIntSafely
+import com.msa.calendar.utils.toPersianNumber
 
 @Composable
 fun CalendarView(
@@ -204,25 +207,15 @@ private fun increaseMonth(
     setMonth: (String) -> Unit,
     setYear: (String) -> Unit
 ) {
-    val monthsList = listOf(
-        "فروردین",
-        "اردیبهشت",
-        "خرداد",
-        "تیر",
-        "مرداد",
-        "شهریور",
-        "مهر",
-        "آبان",
-        "آذر",
-        "دی",
-        "بهمن",
-        "اسفند",
-    )
-    if (monthsList.indexOf(mMonth) < 10) {
-        setMonth(monthsList[monthsList.indexOf(mMonth) + 1])
-    } else {
-        setMonth(monthsList[0])
-        setYear((mYear.toInt() + 1).toString())
+    val currentIndex = monthsList.indexOf(mMonth)
+    if (currentIndex in 0 until monthsList.lastIndex) {
+        setMonth(monthsList[currentIndex + 1])
+    } else if (currentIndex == monthsList.lastIndex) {
+        setMonth(monthsList.first())
+        val nextYear = mYear.toIntSafely()?.plus(1)
+        if (nextYear != null) {
+            setYear(nextYear.toPersianNumber())
+        }
     }
 }
 
@@ -232,24 +225,14 @@ private fun decreaseMonth(
     setMonth: (String) -> Unit,
     setYear: (String) -> Unit
 ) {
-    val monthsList = listOf(
-        "فروردین",
-        "اردیبهشت",
-        "خرداد",
-        "تیر",
-        "مرداد",
-        "شهریور",
-        "مهر",
-        "آبان",
-        "آذر",
-        "دی",
-        "بهمن",
-        "اسفند",
-    )
-    if (monthsList.indexOf(mMonth) > 0) {
-        setMonth(monthsList[monthsList.indexOf(mMonth) - 1])
-    } else {
-        setMonth(monthsList[11])
-        setYear((mYear.toInt() - 1).toString())
+    val currentIndex = monthsList.indexOf(mMonth)
+    if (currentIndex > 0) {
+        setMonth(monthsList[currentIndex - 1])
+    } else if (currentIndex == 0) {
+        setMonth(monthsList.last())
+        val previousYear = mYear.toIntSafely()?.minus(1)
+        if (previousYear != null) {
+            setYear(previousYear.toPersianNumber())
+        }
     }
 }
