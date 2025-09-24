@@ -34,7 +34,7 @@ import com.msa.calendar.components.shadow
 import com.msa.calendar.ui.theme.Purple40
 import com.msa.calendar.ui.theme.PurpleGrey80
 import com.msa.calendar.utils.*
-import com.msa.calendar.utils.JalaliDate
+import com.msa.calendar.utils.SoleimaniDate
 import com.msa.calendar.utils.JlResDimens
 import com.msa.calendar.utils.getWeekDays
 import com.msa.calendar.utils.toPersianNumber
@@ -44,11 +44,11 @@ fun DayOfWeekRangeView(
     mMonthint: String,
     mDay: String,
     mYear: String,
-    startDate: JalaliDate?,
-    endDate: JalaliDate?,
+    startDate: SoleimaniDate?,
+    endDate: SoleimaniDate?,
     setDay: (String) -> Unit,
-    setStartDate: (JalaliDate?) -> Unit,
-    setEndDate: (JalaliDate?) -> Unit,
+    setStartDate: (SoleimaniDate?) -> Unit,
+    setEndDate: (SoleimaniDate?) -> Unit,
     changeSelectedPart: (String) -> Unit
 ) {
     val daysList = getWeekDays(mMonth, mYear)
@@ -78,7 +78,7 @@ fun DayOfWeekRangeView(
                 horizontalArrangement = Arrangement.Center
             ) {
                 items(daysList) { day ->
-                    val candidate = JalaliDate.fromLocalizedStrings(mYear, mMonthint, day)
+                    val candidate = SoleimaniDate.fromLocalizedStrings(mYear, mMonthint, day)
                     val isRangeHighlighted = candidate != null && startDate != null && endDate != null && candidate.isWithin(startDate, endDate)
                     val isPendingStart = candidate != null && startDate != null && endDate == null && candidate == startDate
                     val isPendingSelection = day == mDay && endDate == null
@@ -150,11 +150,11 @@ fun DayOfWeekRangeView(
 }
 
 private fun handleRangeSelection(
-    candidate: JalaliDate,
-    currentStart: JalaliDate?,
-    currentEnd: JalaliDate?,
-    onStartChange: (JalaliDate?) -> Unit,
-    onEndChange: (JalaliDate?) -> Unit,
+    candidate: SoleimaniDate,
+    currentStart: SoleimaniDate?,
+    currentEnd: SoleimaniDate?,
+    onStartChange: (SoleimaniDate?) -> Unit,
+    onEndChange: (SoleimaniDate?) -> Unit,
     onDaySelected: (String) -> Unit,
 ) {
     when {
@@ -189,7 +189,7 @@ fun isDateInRange(targetDate: PersionCalendar, startDate: List<Int>, endDate: Li
     return targetDate.isInRange(startDate, endDate)
 }
 
-private fun JalaliDate.isWithin(start: JalaliDate, end: JalaliDate): Boolean = this >= start && this <= end
+private fun SoleimaniDate.isWithin(start: SoleimaniDate, end: SoleimaniDate): Boolean = this >= start && this <= end
 
 
 @Preview

@@ -56,8 +56,8 @@ fun RangeCalendarScreen(
 
     var pickerType: PickerType by remember { mutableStateOf(PickerType.Day) }
 
-    var startDate by remember { mutableStateOf<JalaliDate?>(null) }
-    var endDate by remember { mutableStateOf<JalaliDate?>(null) }
+    var startDate by remember { mutableStateOf<SoleimaniDate?>(null) }
+    var endDate by remember { mutableStateOf<SoleimaniDate?>(null) }
 
     // ✅ CLOSE THIS LAMBDA
     val updateMonthState: (String) -> Unit = { selectedMonth ->

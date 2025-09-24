@@ -160,7 +160,7 @@ class PersionCalendar {
     }
 
     /**
-     * @return return whether this year is a jalali leap year
+     * @return return whether this year is a Soleimani leap year
      */
     fun isLeap(): Boolean {
         return getLeapFactor(getYear()) == 0
@@ -270,41 +270,41 @@ class PersionCalendar {
         val gc = PersionDayToGregorianCalendar(PersionDayNumber)
         val gregorianYear = gc.get(Calendar.YEAR)
 
-        var jalaliYear: Int
-        var jalaliMonth: Int
-        var jalaliDay: Int
+        var SoleimaniYear: Int
+        var SoleimaniMonth: Int
+        var SoleimaniDay: Int
 
-        jalaliYear = gregorianYear - 621
+        SoleimaniYear = gregorianYear - 621
 
         val gregorianFirstFarvardin: GregorianCalendar =
-            PersionCalendar(jalaliYear, 1, 1).getGregorianFirstFarvardin()
+            PersionCalendar(SoleimaniYear, 1, 1).getGregorianFirstFarvardin()
         val PersionDayFarvardinFirst = gregorianToPersionDayNumber(gregorianFirstFarvardin)
         var diffFromFarvardinFirst = PersionDayNumber - PersionDayFarvardinFirst
 
         if (diffFromFarvardinFirst >= 0) {
             if (diffFromFarvardinFirst <= 185) {
-                jalaliMonth = 1 + diffFromFarvardinFirst / 31
-                jalaliDay = (diffFromFarvardinFirst % 31) + 1
-                set(jalaliYear, jalaliMonth, jalaliDay)
+                SoleimaniMonth = 1 + diffFromFarvardinFirst / 31
+                SoleimaniDay = (diffFromFarvardinFirst % 31) + 1
+                set(SoleimaniYear, SoleimaniMonth, SoleimaniDay)
                 return
             } else {
                 diffFromFarvardinFirst = diffFromFarvardinFirst - 186
             }
         } else {
             diffFromFarvardinFirst = diffFromFarvardinFirst + 179
-            if (getLeapFactor(jalaliYear) == 1)
+            if (getLeapFactor(SoleimaniYear) == 1)
                 diffFromFarvardinFirst = diffFromFarvardinFirst + 1
-            jalaliYear -= 1
+            SoleimaniYear -= 1
         }
 
-        jalaliMonth = 7 + diffFromFarvardinFirst / 30
-        jalaliDay = (diffFromFarvardinFirst % 30) + 1
-        set(jalaliYear, jalaliMonth, jalaliDay)
+        SoleimaniMonth = 7 + diffFromFarvardinFirst / 30
+        SoleimaniDay = (diffFromFarvardinFirst % 30) + 1
+        set(SoleimaniYear, SoleimaniMonth, SoleimaniDay)
     }
 
     private fun toPersionDay(): Int {
-        val jalaliMonth = getMonth()
-        val jalaliDay = getDay()
+        val SoleimaniMonth = getMonth()
+        val SoleimaniDay = getDay()
 
         val gregorianFirstFarvardin = getGregorianFirstFarvardin()
         val gregorianYear = gregorianFirstFarvardin.get(Calendar.YEAR)
@@ -313,8 +313,8 @@ class PersionCalendar {
 
         val PersionFirstFarvardin = PersionCalendars(gregorianYear, gregorianMonth, gregorianDay)
 
-        var PersionDay = PersionToPersionDayNumber(PersionFirstFarvardin) + (jalaliMonth - 1) * 31 - jalaliMonth / 7 * (jalaliMonth - 7)
-        + jalaliDay - 1
+        var PersionDay = PersionToPersionDayNumber(PersionFirstFarvardin) + (SoleimaniMonth - 1) * 31 - SoleimaniMonth / 7 * (SoleimaniMonth - 7)
+        + SoleimaniDay - 1
 
         return PersionDay
     }
@@ -324,25 +324,25 @@ class PersionCalendar {
         val breaks = intArrayOf(-61, 9, 38, 199, 426, 686, 756, 818, 1111, 1181, 1210,
             1635, 2060, 2097, 2192, 2262, 2324, 2394, 2456, 3178)
 
-        val jalaliYear = getYear()
-        val gregorianYear = jalaliYear + 621
-        var jalaliLeap = -14
+        val SoleimaniYear = getYear()
+        val gregorianYear = SoleimaniYear + 621
+        var SoleimaniLeap = -14
         var jp = breaks[0]
 
         var jump = 0
         for (j in 1..19) {
             val jm = breaks[j]
             jump = jm - jp
-            if (jalaliYear < jm) {
-                var N = jalaliYear - jp
-                jalaliLeap = jalaliLeap + N / 33 * 8 + (N % 33 + 3) / 4
+            if (SoleimaniYear < jm) {
+                var N = SoleimaniYear - jp
+                SoleimaniLeap = SoleimaniLeap + N / 33 * 8 + (N % 33 + 3) / 4
 
                 if (jump % 33 == 4 && jump - N == 4)
-                    jalaliLeap = jalaliLeap + 1
+                    SoleimaniLeap = SoleimaniLeap + 1
 
                 val GregorianLeap = (gregorianYear / 4) - (gregorianYear / 100 + 1) * 3 / 4 - 150
 
-                marchDay = 20 + (jalaliLeap - GregorianLeap)
+                marchDay = 20 + (SoleimaniLeap - GregorianLeap)
 
                 if (jump - N < 6)
                     N = N - jump + (jump + 4) / 33 * 33
@@ -350,14 +350,14 @@ class PersionCalendar {
                 break
             }
 
-            jalaliLeap = jalaliLeap + jump / 33 * 8 + (jump % 33) / 4
+            SoleimaniLeap = SoleimaniLeap + jump / 33 * 8 + (jump % 33) / 4
             jp = jm
         }
 
         return GregorianCalendar(gregorianYear, 2, marchDay)
     }
 
-    private fun getLeapFactor(jalaliYear: Int): Int {
+    private fun getLeapFactor(SoleimaniYear: Int): Int {
         var leap = 0
         val breaks = intArrayOf(-61, 9, 38, 199, 426, 686, 756, 818, 1111, 1181, 1210,
             1635, 2060, 2097, 2192, 2262, 2324, 2394, 2456, 3178)
@@ -368,8 +368,8 @@ class PersionCalendar {
         for (j in 1..19) {
             val jm = breaks[j]
             jump = jm - jp
-            if (jalaliYear < jm) {
-                var N = jalaliYear - jp
+            if (SoleimaniYear < jm) {
+                var N = SoleimaniYear - jp
 
                 if (jump - N < 6)
                     N = N - jump + (jump + 4) / 33 * 33

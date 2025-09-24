@@ -41,10 +41,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
 import com.msa.calendar.utils.FormatHelper
-import com.msa.calendar.utils.JalaliDate
+import com.msa.calendar.utils.SoleimaniDate
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.addLeadingZero
-import com.msa.calendar.utils.toJalaliDate
+import com.msa.calendar.utils.toSoleimaniDate
 import com.msa.calendar.utils.toPersianNumber
 
 class MainActivity : ComponentActivity() {
@@ -70,11 +70,11 @@ private enum class SelectionType {
 fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
     var showSinglePicker by remember { mutableStateOf(false) }
     var showRangePicker by remember { mutableStateOf(false) }
-    var selectedSingleDate by remember { mutableStateOf<JalaliDate?>(null) }
-    var selectedRange by remember { mutableStateOf<JalaliRange?>(null) }
+    var selectedSingleDate by remember { mutableStateOf<SoleimaniDate?>(null) }
+    var selectedRange by remember { mutableStateOf<SoleimaniRange?>(null) }
     var lastSelectionType by remember { mutableStateOf<SelectionType?>(null) }
 
-    val today = remember { PersionCalendar().toJalaliDate() }
+    val today = remember { PersionCalendar().toSoleimaniDate() }
 
     if (showSinglePicker) {
         CalendarScreen(
@@ -85,7 +85,7 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
                     .map { it.trim() }
                     .takeIf { it.size == 3 }
                     ?.let { (year, month, day) ->
-                        JalaliDate.fromLocalizedStrings(year, month, day)
+                        SoleimaniDate.fromLocalizedStrings(year, month, day)
                     }
                 selectedSingleDate = parsedDate
                 if (parsedDate != null) {
@@ -99,11 +99,11 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
         RangeCalendarScreen(
             onDismiss = { showRangePicker = false },
             setDate = { dateMaps ->
-                val start = dateMaps.getOrNull(0)?.toJalaliDateOrNull()
-                val end = dateMaps.getOrNull(1)?.toJalaliDateOrNull()
+                val start = dateMaps.getOrNull(0)?.toSoleimaniDateOrNull()
+                val end = dateMaps.getOrNull(1)?.toSoleimaniDateOrNull()
                 if (start != null && end != null) {
                     val (first, second) = if (start <= end) start to end else end to start
-                    selectedRange = JalaliRange(first, second)
+                    selectedRange = SoleimaniRange(first, second)
                     lastSelectionType = SelectionType.Range
                 }
                 showRangePicker = false
@@ -198,8 +198,8 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
 }
 @Composable
 private fun SelectionSummaryCard(
-    selectedSingleDate: JalaliDate?,
-    selectedRange: JalaliRange?,
+    selectedSingleDate: SoleimaniDate?,
+    selectedRange: SoleimaniRange?,
     lastSelectionType: SelectionType?,
     modifier: Modifier = Modifier,
 ) {
@@ -268,23 +268,23 @@ private fun SelectionSummaryRow(
     }
 }
 
-private data class JalaliRange(
-    val start: JalaliDate,
-    val end: JalaliDate,
+private data class SoleimaniRange(
+    val start: SoleimaniDate,
+    val end: SoleimaniDate,
 )
 
-private fun JalaliRange.toDisplayString(): String {
+private fun SoleimaniRange.toDisplayString(): String {
     return "${start.toDisplayString()} تا ${end.toDisplayString()}"
 }
 
-private fun Map<String, String>.toJalaliDateOrNull(): JalaliDate? {
+private fun Map<String, String>.toSoleimaniDateOrNull(): SoleimaniDate? {
     val year = this["year"] ?: return null
     val month = this["month"] ?: return null
     val day = this["day"] ?: return null
-    return JalaliDate.fromLocalizedStrings(year, month, day)
+    return SoleimaniDate.fromLocalizedStrings(year, month, day)
 }
 
-private fun JalaliDate.toDisplayString(): String {
+private fun SoleimaniDate.toDisplayString(): String {
     val yearText = year.toPersianNumber()
     val monthText = FormatHelper.toPersianNumber(addLeadingZero(month))
     val dayText = FormatHelper.toPersianNumber(addLeadingZero(day))

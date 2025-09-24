@@ -1,13 +1,13 @@
 package com.msa.calendar.utils
 
 /**
- * Represents a single date in the Jalali (Persian) calendar.
+ * Represents a single date in the SoleimaniDate (Persian) calendar.
  */
-data class JalaliDate(
+data class SoleimaniDate(
     val year: Int,
     val month: Int,
     val day: Int,
-) : Comparable<JalaliDate> {
+) : Comparable<SoleimaniDate> {
 
     init {
         require(month in 1..12) { "Month must be in 1..12 but was $month" }
@@ -17,7 +17,7 @@ data class JalaliDate(
         }
     }
 
-    override fun compareTo(other: JalaliDate): Int = compareValuesBy(this, other, JalaliDate::year, JalaliDate::month, JalaliDate::day)
+    override fun compareTo(other: SoleimaniDate): Int = compareValuesBy(this, other, SoleimaniDate::year, SoleimaniDate::month, SoleimaniDate::day)
 
     /**
      * Converts this date to a [PersionCalendar] instance.
@@ -39,13 +39,13 @@ data class JalaliDate(
 
     companion object {
         /**
-         * Parses a [JalaliDate] from three localized strings. The input strings may contain Persian digits.
+         * Parses a [SoleimaniDate] from three localized strings. The input strings may contain Persian digits.
          */
-        fun fromLocalizedStrings(year: String, month: String, day: String): JalaliDate? {
+        fun fromLocalizedStrings(year: String, month: String, day: String): SoleimaniDate? {
             val yearValue = year.toIntSafely() ?: return null
             val monthValue = month.toIntSafely() ?: return null
             val dayValue = day.toIntSafely() ?: return null
-            return runCatching { JalaliDate(yearValue, monthValue, dayValue) }.getOrNull()
+            return runCatching { SoleimaniDate(yearValue, monthValue, dayValue) }.getOrNull()
         }
 
         private fun monthLength(year: Int, month: Int): Int = PersionCalendar(year, month, 1).getMonthLength()
@@ -53,6 +53,6 @@ data class JalaliDate(
 }
 
 /**
- * Converts the current [PersionCalendar] date into a strongly typed [JalaliDate].
+ * Converts the current [PersionCalendar] date into a strongly typed [SoleimaniDate].
  */
-fun PersionCalendar.toJalaliDate(): JalaliDate = JalaliDate(getYear(), getMonth(), getDay())
+fun PersionCalendar.toSoleimaniDate(): SoleimaniDate = SoleimaniDate(getYear(), getMonth(), getDay())
