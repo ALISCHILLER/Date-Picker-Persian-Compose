@@ -1,110 +1,127 @@
+# Date Picker Persian Compose
+Modern, international-ready date and range pickers for Jetpack Compose with first-class support for the Persian (Jalali) calendar.
 
-#Title:
-# Date Picker Persian Compose 
-`Date Picker Persian Compose`: a Jetpack Compose library for date and time selection in Farsi language 
+https://github.com/ALISCHILLER/DatePicker-Persian-Compose/assets/121736907/ae68d95f-9fc4-4a58-9d01-3a66b20774a7
 
+## ✨ Highlights
 
-**Summary:**
- DatePickers Persian Compose is a Jetpack Compose library that allows you to choose date and time in Farsi language. This library uses a simple and intuitive user interface that makes it easy.
-```
-DatePicker Persian android  Jetpack Compose 
-```
-## Theme
-<img src="https://github.com/ALISCHILLER/DatePicker-Persian-Compose/blob/main/media/Screen_Recording_20230919_162830_PersionCalendar.gif" width="400" height="796px">&emsp;
-<img src="https://github.com/ALISCHILLER/DatePicker-Persian-Compose/blob/main/media/Screenshot_20230919_162724_PersionCalendar.jpg" width="400" height="596px"/>
+- **Persian calendar by default** with locale-aware digits and month names
+- **Single-date and range dialogs** built on Material 3 design guidelines
+- **Configurable UI/UX** via `DatePickerConfig` (strings, digits mode, colors, today shortcut, etc.)
+- **Powerful constraints** to enforce min/max windows, disabled dates, and business-specific validation rules
+- **Strongly typed callbacks** exposing `SoleimaniDate` while keeping backward compatibility with legacy string outputs
+- **Sample app** that demonstrates advanced scenarios, live toggles for localization, and design customization
 
-**Attributes:**
+## 📦 Setup
 
-* Support for selecting the date and time in Farsi language
-* Simple and intuitive user interface
-* Ability to customize
-
-**How to use:**
-
-To use DatePickers Persian Compose, you must first add it to your Jetpack Compose project. You can do this by adding the following substring to your build.gradle file:
-
+Add JitPack to your repositories and include the dependency:
 ```
 
-All projects {
-reservoirs
-...
-maven { url 'https://www.jitpack.io' }
-}
-}
-```
-```
-
-Dependencies {
-implementation 'com.github.ALISCHILLER:Date-Picker-Persian-Compose:0.0.2'
+```kotlin
+// settings.gradle or build.gradle (Project)
+repositories {
+    maven { url = uri("https://www.jitpack.io") }
 }
 ```
 
-After installing the library, you can use it in your project. To do this, you need to add the `CalendarScreen` component to your Jetpack Compose file:
+```kotlin
+// module build.gradle
+dependencies {
+    implementation("com.github.ALISCHILLER:Date-Picker-Persian-Compose:0.0.2")
+}
+```
 
-Kathleen
-import com.github.ALISCHILLER.date_pickers_persian.DatePicker
+## 🚀 Quick start
+
+```kotlin
+var showPicker by remember { mutableStateOf(false) }
+val selectedDate by remember { mutableStateOf<SoleimaniDate?>(null) }
+
 
 @Composable
 fun program () {
-   calendar page (
-   onDismiss = { hideDatePicker = true },
-    onConfirm = { setDate = it }
-     )
+    if (showPicker) {
+        CalendarScreen(
+            onDismiss = { showPicker = false },
+            onConfirm = { showPicker = false },
+            onDateSelected = { date ->
+                selectedDate = date
+            }
+        )
+    }
 }
 ```
+For range selection:
 
-
-import com.github.ALISCHILLER.date_pickers_persian.DatePicker
-
-@Composable
-fun program () {
-    calendar page (
-     onDismiss = { hideDatePicker = true },
-     onConfirm = { setDate = it }
-   )
-}
+```kotlin
+RangeCalendarScreen(
+    onDismiss = { showRange = false },
+    setDate = { /* optional legacy callback */ },
+    onRangeSelected = { start, end ->
+        // Handle confirmed range (start <= end guaranteed)
+    }
+)
 ```
+## ⚙️ Advanced configuration
 
-This code creates a simple `DatePicker` component and saves the selected date to a `date` variable.
+Every dialog accepts a `DatePickerConfig` instance that lets you tailor the UX to your product requirements:
+
+```kotlin
+val config = DatePickerConfig(
+    strings = DatePickerStrings(
+        title = "Select date",
+        confirm = "Confirm",
+        cancel = "Cancel",
+        today = "Today",
+        rangeStartLabel = "Start date",
+        rangeEndLabel = "End date",
+    ),
+    digitMode = DigitMode.Latin,              // Switch to Western digits
+    showTodayAction = true,                   // Display the quick jump to today
+    highlightToday = true,                    // Outline today's cell on matching month/year
+    constraints = DatePickerConstraints(
+        minDate = today,                      // Lock the dialog to future dates only
+        maxDate = today.plusDays(30),         // ...and at most 30 days ahead
+        disabledDates = generateHolidays(),   // Disable specific public holidays
+        dateValidator = { candidate ->        // Custom validation for business rules
+            candidate.toCalendar().getDayOfWeek() != Calendar.FRIDAY
+        }
+    )
+)
+
+CalendarScreen(
+    onDismiss = { showPicker = false },
+    onConfirm = { showPicker = false },
+    config = config,
+    onDateSelected = { /* typed SoleimaniDate */ }
+)
+```
+`RangeCalendarScreen` accepts the same configuration object and also exposes `initialStartDate`, `initialEndDate`, and `onRangeSelected` for richer flows. Any constraints you configure will automatically propagate to the range dialog, preventing users from confirming invalid spans.
+
+> ℹ️ The `DatePickerConstraints` API is extensible. It ships with built-in min/max checks, disabled-date lists, and a custom `dateValidator` callback that you can connect to your own holiday service or business calendar.
+
+## 🧪 Sample app
+Run the `app` module to explore the library interactively. The sample demonstrates:
+
+- Single-day and range pickers
+- Instant "set to today" action
+- Switchable digit mode (Persian ↔ Latin) via runtime preferences
+- Live toggles for the "Today" shortcut, rolling 30-day windows, weekday blocking, and recurring date blacklists
+- Beautiful summaries that update automatically after each selection, including active constraint diagnostics
+
+## 🛠️ Local development
+
+```bash
+./gradlew :calendar:assembleDebug
+./gradlew :app:installDebug
+```
+The project targets the latest stable Compose BOM and uses Material 3. Make sure to run the Gradle tasks above before submitting contributions.
 
 
-  The GNU General Public License is a free, copyleft license for
-software and other kinds of works.
+## 📄 License
 
-**connections:**
-
-For more information, please visit the GitHub page: https://github.com/ALISCHILLER/DatePicker-Persian-Compose.
-
-**Version:** 0.0.1
-
-**Date:** 2023-09-19
-
-**Author:** Ali Soleimani
-
-**Changes:**
-
-* Version 0.0.1: Initial release
-
-**Implementation:**
-
-
-An onSelect event is called when the user selects a date or time. This event receives the date or selected value as a time.
-
-
-
-**Development:**
-
-The DatePicker Persian Compose library is under development. In the future, new features support language development and support selection
-
-
-
-**License:**
-
-                    GNU GENERAL PUBLIC LICENSE
-                       Version 3, 29 June 2007
-
- Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
- Everyone is permitted to copy and distribute verbatim copies
- of this license document, but changing it is not allowed.
+Released under the [GNU GPL v3](./LICENSE).
+---
+Created with ❤️ for apps that need a production-grade Persian calendar experience, while still offering international teams the flexibility to localize and brand the picker for global products.
 
                   

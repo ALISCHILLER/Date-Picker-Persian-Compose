@@ -1,7 +1,6 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    // 👇 حتماً
     id("org.jetbrains.kotlin.plugin.compose")
     // `maven-publish` و `signing` فقط اگر واقعاً انتشار داری
     // `maven-publish`

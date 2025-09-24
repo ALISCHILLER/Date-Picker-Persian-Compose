@@ -52,6 +52,17 @@ data class SoleimaniDate(
     }
 }
 
+/** Moves the date by [days] while keeping it within the Persian calendar system. */
+fun SoleimaniDate.plusDays(days: Int): SoleimaniDate? {
+    if (days == 0) return this
+    val target = toCalendar().getDateByDiff(days)
+    return runCatching { target.toSoleimaniDate() }.getOrNull()
+}
+
+/** Convenience wrapper around [plusDays] for subtracting days. */
+fun SoleimaniDate.minusDays(days: Int): SoleimaniDate? = plusDays(-days)
+
+
 /**
  * Converts the current [PersionCalendar] date into a strongly typed [SoleimaniDate].
  */
