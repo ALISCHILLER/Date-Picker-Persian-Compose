@@ -37,6 +37,7 @@ import com.msa.calendar.utils.monthsList
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import com.msa.calendar.ui.DatePickerConfig
@@ -206,7 +207,7 @@ fun CalendarScreen(
                         ) {
                             Text(text = strings.cancel)
                         }
-                        pacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
 
                         Button(
                             enabled = isSelectionEnabled,

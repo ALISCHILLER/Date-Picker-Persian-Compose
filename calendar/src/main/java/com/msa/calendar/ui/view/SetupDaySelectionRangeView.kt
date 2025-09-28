@@ -49,7 +49,8 @@ fun DayOfWeekRangeView(
     setDay: (String) -> Unit,
     setStartDate: (SoleimaniDate?) -> Unit,
     setEndDate: (SoleimaniDate?) -> Unit,
-    changeSelectedPart: (String) -> Unit
+    isDateEnabled: (SoleimaniDate) -> Boolean = { true },
+    changeSelectedPart: (String) -> Unit = {}
 ) {
     val daysList = getWeekDays(mMonth, mYear)
 
@@ -79,13 +80,22 @@ fun DayOfWeekRangeView(
             ) {
                 items(daysList) { day ->
                     val candidate = SoleimaniDate.fromLocalizedStrings(mYear, mMonthint, day)
-                    val isRangeHighlighted = candidate != null && startDate != null && endDate != null && candidate.isWithin(startDate, endDate)
-                    val isPendingStart = candidate != null && startDate != null && endDate == null && candidate == startDate
-                    val isPendingSelection = day == mDay && endDate == null
+                    val isEnabled = candidate?.let(isDateEnabled) ?: false
+                    val isRangeHighlighted = candidate != null && isEnabled && startDate != null && endDate != null && candidate.isWithin(startDate, endDate)
+                    val isPendingStart = candidate != null && isEnabled && startDate != null && endDate == null && candidate == startDate
+                    val isPendingSelection = day == mDay && endDate == null && isEnabled
                     val isHighlighted = isRangeHighlighted || isPendingStart || isPendingSelection
-                    val backgroundColor = if (isHighlighted) MaterialTheme.colorScheme.primary else Color.White
-                    val contentColor = if (isHighlighted) MaterialTheme.colorScheme.onPrimary else Color.Black
-                    val emphasizeSelection = candidate != null && (
+                    val backgroundColor = when {
+                        isHighlighted -> MaterialTheme.colorScheme.primary
+                        !isEnabled -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                        else -> Color.White
+                    }
+                    val contentColor = when {
+                        isHighlighted -> MaterialTheme.colorScheme.onPrimary
+                        !isEnabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        else -> Color.Black
+                    }
+                    val emphasizeSelection = candidate != null && isEnabled && (
                             (startDate != null && candidate == startDate) ||
                                     (endDate != null && candidate == endDate) ||
                                     (endDate == null && day == mDay)
@@ -96,7 +106,7 @@ fun DayOfWeekRangeView(
                             .aspectRatio(1f, true)
                             .padding(4.dp)
                             .shadow(
-                                color = shadowColor,
+                                color = if (isEnabled) shadowColor else PurpleGrey80.copy(alpha = 0.3f),
                                 borderRadius = 10.dp,
                                 offsetX = 0.0.dp,
                                 offsetY = 3.dp,
@@ -114,18 +124,21 @@ fun DayOfWeekRangeView(
                                 shape = RoundedCornerShape(JlResDimens.dp10)
                             )
                             .clip(RoundedCornerShape(14.dp))
-                            .clickable {
-                                val selectedDate = candidate ?: return@clickable
-                                changeSelectedPart("main")
-                                handleRangeSelection(
-                                    candidate = selectedDate,
-                                    currentStart = startDate,
-                                    currentEnd = endDate,
-                                    onStartChange = setStartDate,
-                                    onEndChange = setEndDate,
-                                    onDaySelected = setDay,
-                                )
-                            },
+                            .clickable(
+                                enabled = isEnabled && candidate != null,
+                                onClick = {
+                                    val selectedDate = candidate ?: return@clickable
+                                    changeSelectedPart("main")
+                                    handleRangeSelection(
+                                        candidate = selectedDate,
+                                        currentStart = startDate,
+                                        currentEnd = endDate,
+                                        onStartChange = setStartDate,
+                                        onEndChange = setEndDate,
+                                        onDaySelected = setDay,
+                                    )
+                                }
+                            ),
 
                         color = backgroundColor,
                     ) {

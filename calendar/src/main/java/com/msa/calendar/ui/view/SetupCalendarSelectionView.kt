@@ -21,9 +21,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.center
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RadialGradientShader
+import androidx.compose.ui.graphics.LinearGradientShader
 import androidx.compose.ui.graphics.Shader
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -38,6 +38,10 @@ import com.msa.calendar.utils.PickerType
 import com.msa.calendar.utils.monthsList
 import com.msa.calendar.utils.toIntSafely
 import com.msa.calendar.utils.toPersianNumber
+import com.msa.calendar.ui.DatePickerColors
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.remember
 
 @Composable
 fun CalendarView(
@@ -49,53 +53,53 @@ fun CalendarView(
     setDay: (String) -> Unit,
     setMonth: (String) -> Unit,
     setYear: (String) -> Unit,
+    title: String,
+    subtitle: String,
+    colors: DatePickerColors,
+    showToday: Boolean,
+    todayLabel: String,
+    onTodayClick: () -> Unit,
 ) {
-    val largeRadialGradient = object : ShaderBrush() {
-        override fun createShader(size: Size): Shader {
-            val biggerDimension = maxOf(size.height, size.width)
-            return RadialGradientShader(
-                colors = listOf(Color(0xFF2be4dc), Color(0xFF243484)),
-                center = size.center,
-                radius = biggerDimension / 2f,
-                colorStops = listOf(0f, 0.95f)
-            )
+    val gradientBrush = remember(colors.gradientStart, colors.gradientEnd) {
+        object : ShaderBrush() {
+            override fun createShader(size: Size): Shader {
+                return LinearGradientShader(
+                    from = Offset.Zero,
+                    to = Offset(size.width, size.height),
+                    colors = listOf(colors.gradientStart, colors.gradientEnd),
+                    colorStops = listOf(0f, 1f)
+                )
+            }
         }
     }
+
     Column(
         modifier = Modifier
-            .background(
-                largeRadialGradient
-            )
+            .background(gradientBrush)
             .animateContentSize()
     ) {
-        CompositionLocalProvider(
-            LocalLayoutDirection provides LayoutDirection.Rtl
-        ) {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(5.dp)
-                    .padding(4.dp)
-                    .background(largeRadialGradient),
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .background(gradientBrush),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    modifier = Modifier.padding(5.dp),
-                    text = "انتخاب تاریخ",
-                    color = Color.White,
-                    fontSize = 15.sp,
+                    text = title,
+                    color = colors.titleTextColor,
+                    fontSize = 16.sp,
                     fontFamily = FontFamily.Serif,
                 )
 
 
                 Text(
-                    modifier = Modifier.padding(5.dp),
-                    text = "$mYear $mMonth $mDay",
-                    color = Color.White,
-                    style = TextStyle(),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 25.sp,
+                    text = subtitle,
+                    color = colors.subtitleTextColor,
+                    style = TextStyle(fontWeight = FontWeight.Bold),
+                    fontSize = 24.sp,
                     fontFamily = FontFamily.Serif,
                 )
 
@@ -105,7 +109,7 @@ fun CalendarView(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp)
-                .background(largeRadialGradient),
+                .background(gradientBrush),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -114,45 +118,41 @@ fun CalendarView(
             IconButton(
                 onClick = {
                     decreaseMonth(
-                        mMonth,
-                        mYear,
-                        setMonth = { setMonth(it) },
-                        setYear = { setYear(it) })
+                        mMonth = mMonth,
+                        mYear = mYear,
+                        setMonth = setMonth,
+                        setYear = setYear,
+                    )
                 },
-                modifier = Modifier.size(43.dp)
+                modifier = Modifier.size(40.dp)
             ) {
                 Icon(
                     painter = rememberVectorPainter(image = Icons.Default.KeyboardArrowLeft),
-                    contentDescription = "arrow",
-                    tint = Color.White
+                    contentDescription = "Previous Month",
+                    tint = colors.controlIconColor
                 )
             }
 
-
-            //Years
             TextButton(
                 onClick = {
-                    if (pickerType != PickerType.Year)
-                        pickerTypeChang(PickerType.Year)
-                    else
-                        pickerTypeChang(PickerType.Day)
-                },
-                modifier = Modifier.padding(0.dp)
+                    if (pickerType != PickerType.Year) pickerTypeChang(PickerType.Year)
+                    else pickerTypeChang(PickerType.Day)
+                }
             ) {
                 Text(
                     text = mYear,
-                    color = Color.White,
-                    fontSize = 15.sp,
+                    color = colors.subtitleTextColor,
+                    fontSize = 16.sp,
                     fontFamily = FontFamily.SansSerif,
                 )
                 Icon(
                     imageVector = Icons.Outlined.ArrowDropDown,
-                    contentDescription = "",
-                    tint = Color.White,
+                    contentDescription = null,
+                    tint = colors.controlIconColor,
                 )
             }
 
-            ///Month
+
             TextButton(
                 onClick = {
                     if (pickerType != PickerType.Month)
@@ -164,37 +164,61 @@ fun CalendarView(
             {
                 Text(
                     text = mMonth,
-                    color = Color.White,
-                    fontSize = 15.sp,
+                    color = colors.subtitleTextColor,
+                    fontSize = 16.sp,
                     fontFamily = FontFamily.SansSerif,
                 )
                 Icon(
                     imageVector = Icons.Outlined.ArrowDropDown,
-                    contentDescription = "",
-                    tint = Color.White
+                    contentDescription = null,
+                    tint = colors.controlIconColor,
                 )
             }
 
-            // KeyboardArrowRight
             IconButton(
                 onClick = {
                     increaseMonth(
-                        mMonth,
-                        mYear,
-                        setMonth = { setMonth(it) },
-                        setYear = { setYear(it) }
+                        mMonth = mMonth,
+                        mYear = mYear,
+                        setMonth = setMonth,
+                        setYear = setYear,
                     )
 
                 },
-                modifier = Modifier.size(46.dp)
-            )
-            {
+                modifier = Modifier.size(40.dp)
+            ) {
                 Icon(
                     painter = rememberVectorPainter(image = Icons.Default.KeyboardArrowRight),
-                    contentDescription = "Right",
-                    tint = Color.White
+                    contentDescription = "Next Month",
+                    tint = colors.controlIconColor
                 )
 
+            }
+        }
+
+        if (showToday) {
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(gradientBrush)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        color = colors.todayButtonBackground,
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        TextButton(onClick = onTodayClick) {
+                            Text(
+                                text = todayLabel,
+                                color = colors.todayButtonContent,
+                                fontSize = 13.sp,
+                            )
+                        }
+                    }
+                }
             }
         }
 

@@ -23,6 +23,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -324,7 +325,7 @@ private fun PreferenceSwitchRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    Row(
+    Row (
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -435,24 +436,25 @@ private fun ConstraintSummary(
     blockFridays: Boolean,
     blockThirteenth: Boolean,
 ) {
+    // Snapshot to local vals to enable smart cast
+    val min = constraints.minDate
+    val max = constraints.maxDate
+    val disabled = constraints.disabledDates
+
     val rules = buildList {
-        if (limitToNextMonth && constraints.minDate != null && constraints.maxDate != null) {
-            add(
-                "انتخاب تاریخ تنها بین ${constraints.minDate.toDisplayString()} تا ${constraints.maxDate.toDisplayString()} امکان‌پذیر است."
-            )
+        if (limitToNextMonth && min != null && max != null) {
+            add("انتخاب تاریخ تنها بین ${min.toDisplayString()} تا ${max.toDisplayString()} امکان‌پذیر است.")
         }
         if (blockFridays) {
             add("روزهای جمعه برای انتخاب غیرفعال شده‌اند.")
         }
         if (blockThirteenth) {
-            val blockedCount = constraints.disabledDates.size
+            val blockedCount = disabled.size
             val suffix = if (blockedCount > 0) " ($blockedCount تاریخ)" else ""
             add("روز سیزدهم هر ماه مسدود است$suffix.")
         }
-        if (!limitToNextMonth && constraints.minDate != null && constraints.maxDate != null) {
-            add(
-                "محدوده فعال از ${constraints.minDate.toDisplayString()} تا ${constraints.maxDate.toDisplayString()} تعیین شده است."
-            )
+        if (!limitToNextMonth && min != null && max != null) {
+            add("محدوده فعال از ${min.toDisplayString()} تا ${max.toDisplayString()} تعیین شده است.")
         }
     }
 
