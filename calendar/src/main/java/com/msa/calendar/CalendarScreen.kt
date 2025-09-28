@@ -33,12 +33,7 @@ import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.PickerType
 import com.msa.calendar.utils.toPersianNumber
 import com.msa.calendar.utils.monthsList
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+
 import com.msa.calendar.ui.DatePickerConfig
 import com.msa.calendar.ui.DatePickerStrings
 import com.msa.calendar.ui.DigitMode
@@ -47,6 +42,16 @@ import com.msa.calendar.utils.SoleimaniDate
 import com.msa.calendar.utils.addLeadingZero
 import com.msa.calendar.utils.toIntSafely
 import com.msa.calendar.ui.DatePickerQuickAction
+
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.widthIn
 
 @Composable
 fun CalendarScreen(
@@ -102,18 +107,26 @@ fun CalendarScreen(
 
     Dialog(onDismissRequest = { onDismiss(true) }) {
         Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                ) { onDismiss(true) }
+            modifier = Modifier.fillMaxSize()
         ) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(Color.Black.copy(alpha = 0.35f))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) { onDismiss(true) }
+            )
             Surface(
-                modifier = modifier,
+                modifier = modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 16.dp, vertical = 24.dp)
+                    .fillMaxWidth()
+                    .widthIn(min = 280.dp, max = 420.dp),
                 shape = shape,
                 tonalElevation = AlertDialogDefaults.TonalElevation,
+                shadowElevation = 24.dp,
                 color = colors.containerColor,
             ) {
 
@@ -228,21 +241,31 @@ fun CalendarScreen(
 
                         }
                     }
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        thickness = 1.dp,
+                        color = colors.cancelButtonContent.copy(alpha = 0.12f)
+                    )
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.End,
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         TextButton(
                             onClick = { onDismiss(true) },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(14.dp),
                             colors = ButtonDefaults.textButtonColors(
+                                containerColor = colors.todayButtonBackground,
                                 contentColor = colors.cancelButtonContent
                             )
                         ) {
                             Text(text = strings.cancel)
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
 
                         Button(
                             enabled = isSelectionEnabled,
@@ -255,6 +278,8 @@ fun CalendarScreen(
                                 onConfirm(config.dateFormatter.format(confirmed, config.digitMode))
                                 onDismiss(true)
                             },
+                            modifier = Modifier.weight(1.2f),
+                            shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = colors.confirmButtonBackground,
                                 contentColor = colors.confirmButtonContent,

@@ -2,7 +2,7 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
-    // `maven-publish` و `signing` فقط اگر واقعاً انتشار داری
+    // `maven-publish` و `signing`
     // `maven-publish`
     // id("signing")
 }
@@ -35,8 +35,6 @@ android {
 
     buildFeatures { compose = true }
 
-    // ❌ این بلوک را حذف کن؛ برای Kotlin 2.x لازم نیست
-    // composeOptions { kotlinCompilerExtensionVersion = "1.4.8" }
 }
 
 dependencies {
@@ -49,6 +47,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

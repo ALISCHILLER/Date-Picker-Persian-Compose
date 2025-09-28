@@ -2,6 +2,7 @@ package com.msa.calendar
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -13,9 +14,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -113,19 +117,25 @@ fun RangeCalendarScreen(
     }
 
     Dialog(onDismissRequest = { onDismiss(true) }) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                ) { onDismiss(true) }
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(Color.Black.copy(alpha = 0.35f))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) { onDismiss(true) }
+            )
             Surface(
-                modifier = modifier,
+                modifier = modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 16.dp, vertical = 24.dp)
+                    .fillMaxWidth()
+                    .widthIn(min = 280.dp, max = 420.dp),
                 shape = shape,
                 tonalElevation = AlertDialogDefaults.TonalElevation,
+                shadowElevation = 24.dp,
                 color = colors.containerColor,
             ) {
                 Column(
@@ -234,24 +244,32 @@ fun RangeCalendarScreen(
                                 .padding(horizontal = 24.dp, vertical = 4.dp),
                         )
                     }
-
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        thickness = 1.dp,
+                        color = colors.cancelButtonContent.copy(alpha = 0.12f)
+                    )
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.End,
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         TextButton(
                             onClick = { onDismiss(true) },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(14.dp),
                             colors = ButtonDefaults.textButtonColors(
+                                containerColor = colors.todayButtonBackground,
                                 contentColor = colors.cancelButtonContent
                             )
                         ) {
                             Text(text = strings.cancel)
                         }
 
-                        Spacer(modifier = Modifier.width(12.dp))
 
                         Button(
                             enabled = isRangeComplete,
@@ -271,6 +289,8 @@ fun RangeCalendarScreen(
                                 )
                                 onDismiss(true)
                             },
+                            modifier = Modifier.weight(1.2f),
+                            shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = colors.confirmButtonBackground,
                                 contentColor = colors.confirmButtonContent,
