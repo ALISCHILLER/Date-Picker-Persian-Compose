@@ -1,5 +1,6 @@
 package com.msa.calendar.utils
 
+import java.time.DayOfWeek
 /**
  * Represents a single date in the SoleimaniDate (Persian) calendar.
  */
@@ -67,3 +68,16 @@ fun SoleimaniDate.minusDays(days: Int): SoleimaniDate? = plusDays(-days)
  * Converts the current [PersionCalendar] date into a strongly typed [SoleimaniDate].
  */
 fun PersionCalendar.toSoleimaniDate(): SoleimaniDate = SoleimaniDate(getYear(), getMonth(), getDay())
+
+/** Returns the [DayOfWeek] represented by this date. */
+fun SoleimaniDate.dayOfWeek(): DayOfWeek = toCalendar().dayOfWeek().toDayOfWeek()
+
+/** Calculates the signed number of days between this date and [other]. */
+fun SoleimaniDate.daysUntil(other: SoleimaniDate): Int {
+    val thisMillis = toCalendar().toGregorian().timeInMillis
+    val otherMillis = other.toCalendar().toGregorian().timeInMillis
+    val diff = otherMillis - thisMillis
+    return (diff / MILLIS_PER_DAY).toInt()
+}
+
+private const val MILLIS_PER_DAY = 24L * 60L * 60L * 1000L

@@ -39,9 +39,14 @@ import com.msa.calendar.utils.monthsList
 import com.msa.calendar.utils.toIntSafely
 import com.msa.calendar.utils.toPersianNumber
 import com.msa.calendar.ui.DatePickerColors
-import androidx.compose.material3.Surface
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.remember
+import com.msa.calendar.ui.DatePickerQuickAction
+import com.msa.calendar.ui.DatePickerStrings
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 
 @Composable
 fun CalendarView(
@@ -55,10 +60,10 @@ fun CalendarView(
     setYear: (String) -> Unit,
     title: String,
     subtitle: String,
+    strings: DatePickerStrings,
     colors: DatePickerColors,
-    showToday: Boolean,
-    todayLabel: String,
-    onTodayClick: () -> Unit,
+    quickActions: List<DatePickerQuickAction>,
+    onQuickActionClick: (DatePickerQuickAction) -> Unit,
 ) {
     val gradientBrush = remember(colors.gradientStart, colors.gradientEnd) {
         object : ShaderBrush() {
@@ -196,27 +201,26 @@ fun CalendarView(
             }
         }
 
-        if (showToday) {
+        if (quickActions.isNotEmpty()) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                Row(
+                FlowRow(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(gradientBrush)
                         .padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Surface(
-                        color = colors.todayButtonBackground,
-                        shape = RoundedCornerShape(20.dp)
-                    ) {
-                        TextButton(onClick = onTodayClick) {
-                            Text(
-                                text = todayLabel,
-                                color = colors.todayButtonContent,
-                                fontSize = 13.sp,
-                            )
-                        }
+                    quickActions.forEach { action ->
+                        AssistChip(
+                            onClick = { onQuickActionClick(action) },
+                            label = { Text(text = action.label(strings)) },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = colors.todayButtonBackground,
+                                labelColor = colors.todayButtonContent,
+                            ),
+                        )
                     }
                 }
             }

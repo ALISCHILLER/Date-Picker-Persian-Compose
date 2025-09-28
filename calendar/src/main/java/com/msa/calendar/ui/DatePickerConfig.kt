@@ -8,10 +8,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 import com.msa.calendar.utils.SoleimaniDate
 import com.msa.calendar.utils.addLeadingZero
+import com.msa.calendar.utils.daysUntil
 import com.msa.calendar.utils.minusDays
 import com.msa.calendar.utils.plusDays
 import com.msa.calendar.utils.toPersianNumber
-
+import java.time.DayOfWeek
+import kotlin.math.abs
 /**
  * Controls the overall behaviour and appearance of the Persian date picker dialogs.
  */
@@ -22,9 +24,12 @@ data class DatePickerConfig(
     val digitMode: DigitMode = DigitMode.Persian,
     val highlightToday: Boolean = true,
     val showTodayAction: Boolean = true,
+    val weekConfiguration: WeekConfiguration = WeekConfiguration(),
+    val quickActions: List<DatePickerQuickAction> = emptyList(),
     val containerShape: Shape = DatePickerDefaults.ContainerShape,
     val dateFormatter: DateFormatter = DateFormatter.Default,
     val constraints: DatePickerConstraints = DatePickerConstraints(),
+    val eventIndicator: (SoleimaniDate) -> CalendarEvent? = { null },
 )
 
 /**
@@ -36,6 +41,7 @@ data class DatePickerStrings(
     val confirm: String = "تایید",
     val cancel: String = "انصراف",
     val today: String = "امروز",
+    val clearSelection: String = "پاک کردن انتخاب",
     val rangeStartLabel: String = "تاریخ شروع",
     val rangeEndLabel: String = "تاریخ پایان",
 )
@@ -57,6 +63,7 @@ data class DatePickerColors(
     val confirmButtonContent: Color,
     val cancelButtonContent: Color,
     val todayOutline: Color,
+    val weekendLabelColor: Color,
 )
 
 /**
@@ -68,10 +75,14 @@ data class DatePickerConstraints(
     val maxDate: SoleimaniDate? = null,
     val disabledDates: Set<SoleimaniDate> = emptySet(),
     val dateValidator: (SoleimaniDate) -> Boolean = AlwaysValid,
+    val maxRangeLength: Int? = null,
 ) {
     init {
         if (minDate != null && maxDate != null) {
             require(minDate <= maxDate) { "minDate must be before or equal to maxDate" }
+        }
+        if (maxRangeLength != null) {
+            require(maxRangeLength > 0) { "maxRangeLength must be greater than zero" }
         }
     }
 
@@ -85,6 +96,12 @@ data class DatePickerConstraints(
     fun clamp(date: SoleimaniDate): SoleimaniDate {
         val minClamped = minDate?.let { if (date < it) it else date } ?: date
         return maxDate?.let { if (minClamped > it) it else minClamped } ?: minClamped
+    }
+
+    fun isRangeWithinLimit(start: SoleimaniDate, end: SoleimaniDate): Boolean {
+        val limit = maxRangeLength ?: return true
+        val distance = abs(start.daysUntil(end)) + 1
+        return distance <= limit
     }
 
     fun nearestValidOrNull(anchor: SoleimaniDate): SoleimaniDate? {
@@ -148,6 +165,78 @@ class DateFormatter internal constructor(
         }
     }
 }
+@Immutable
+data class CalendarEvent(
+    val color: Color,
+    val label: String? = null,
+)
+
+@Immutable
+data class WeekConfiguration(
+    val startDay: DayOfWeek = DayOfWeek.SATURDAY,
+    val weekendDays: Set<DayOfWeek> = setOf(DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
+    val dayLabelFormatter: WeekdayFormatter = WeekdayFormatter.PersianShort,
+) {
+    init {
+        require(weekendDays.isNotEmpty()) { "weekendDays must contain at least one day" }
+    }
+
+    val orderedDays: List<DayOfWeek>
+        get() = List(7) { startDay.shift(it) }
+}
+
+@Immutable
+class WeekdayFormatter internal constructor(
+    private val formatter: (DayOfWeek) -> String,
+) {
+    fun format(day: DayOfWeek): String = formatter(day)
+
+    companion object {
+        val PersianShort = WeekdayFormatter { day ->
+            when (day) {
+                DayOfWeek.SATURDAY -> "ش"
+                DayOfWeek.SUNDAY -> "ی"
+                DayOfWeek.MONDAY -> "د"
+                DayOfWeek.TUESDAY -> "س"
+                DayOfWeek.WEDNESDAY -> "چ"
+                DayOfWeek.THURSDAY -> "پ"
+                DayOfWeek.FRIDAY -> "ج"
+            }
+        }
+
+        val LatinShort = WeekdayFormatter { day ->
+            when (day) {
+                DayOfWeek.MONDAY -> "Mo"
+                DayOfWeek.TUESDAY -> "Tu"
+                DayOfWeek.WEDNESDAY -> "We"
+                DayOfWeek.THURSDAY -> "Th"
+                DayOfWeek.FRIDAY -> "Fr"
+                DayOfWeek.SATURDAY -> "Sa"
+                DayOfWeek.SUNDAY -> "Su"
+            }
+        }
+    }
+}
+
+@Immutable
+sealed interface DatePickerQuickAction {
+    fun label(strings: DatePickerStrings): String
+
+    object Today : DatePickerQuickAction {
+        override fun label(strings: DatePickerStrings): String = strings.today
+    }
+
+    data class ClearSelection(private val customLabel: String? = null) : DatePickerQuickAction {
+        override fun label(strings: DatePickerStrings): String = customLabel ?: strings.clearSelection
+    }
+
+    data class JumpToDate(
+        private val actionLabel: String,
+        val targetDateProvider: () -> SoleimaniDate?,
+    ) : DatePickerQuickAction {
+        override fun label(strings: DatePickerStrings): String = actionLabel
+    }
+}
 
 object DatePickerDefaults {
     val ContainerShape: Shape = RoundedCornerShape(28.dp)
@@ -165,6 +254,7 @@ object DatePickerDefaults {
         confirmButtonContent: Color = Color.White,
         cancelButtonContent: Color = Color(0xFF1F2937),
         todayOutline: Color = Color(0xFF3B82F6),
+        weekendLabelColor: Color = Color(0xFFEF4444),
     ): DatePickerColors = DatePickerColors(
         gradientStart = gradientStart,
         gradientEnd = gradientEnd,
@@ -178,6 +268,7 @@ object DatePickerDefaults {
         confirmButtonContent = confirmButtonContent,
         cancelButtonContent = cancelButtonContent,
         todayOutline = todayOutline,
+        weekendLabelColor = weekendLabelColor,
     )
 }
 
@@ -209,4 +300,9 @@ private fun String.toPersianNumber(): String = buildString(length) {
             }
         )
     }
+}
+
+internal fun DayOfWeek.shift(days: Int): DayOfWeek {
+    val normalized = ((value - 1 + days) % 7 + 7) % 7
+    return DayOfWeek.of(normalized + 1)
 }

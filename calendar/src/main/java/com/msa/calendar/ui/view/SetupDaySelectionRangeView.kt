@@ -19,56 +19,84 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import com.msa.calendar.components.shadow
 import com.msa.calendar.ui.theme.Purple40
 import com.msa.calendar.ui.theme.PurpleGrey80
+import com.msa.calendar.ui.CalendarEvent
+import com.msa.calendar.ui.DigitMode
+import com.msa.calendar.ui.WeekConfiguration
 import com.msa.calendar.utils.*
-import com.msa.calendar.utils.SoleimaniDate
 import com.msa.calendar.utils.JlResDimens
-import com.msa.calendar.utils.getWeekDays
+import com.msa.calendar.utils.SoleimaniDate
 import com.msa.calendar.utils.toPersianNumber
+
 @Composable
 fun DayOfWeekRangeView(
     mMonth: String,
-    mMonthint: String,
     mDay: String,
     mYear: String,
     startDate: SoleimaniDate?,
     endDate: SoleimaniDate?,
+    weekConfiguration: WeekConfiguration,
+    digitMode: DigitMode,
+    weekendLabelColor: Color,
+    highlightColor: Color,
+    eventIndicator: (SoleimaniDate) -> CalendarEvent?,
     setDay: (String) -> Unit,
     setStartDate: (SoleimaniDate?) -> Unit,
     setEndDate: (SoleimaniDate?) -> Unit,
     isDateEnabled: (SoleimaniDate) -> Boolean = { true },
-    changeSelectedPart: (String) -> Unit = {}
+    changeSelectedPart: (String) -> Unit = {},
 ) {
-    val daysList = getWeekDays(mMonth, mYear)
+    val monthCells = remember(mMonth, mYear, weekConfiguration.startDay) {
+        buildMonthCells(mMonth, mYear, weekConfiguration.startDay)
+    }
+    val selectedDayValue = remember(mDay) { mDay.toIntSafely() }
+    val selectedMonthNumber = remember(mMonth) {
+        monthsList.indexOf(mMonth).takeIf { it >= 0 }?.plus(1)
+    }
+    val orderedWeekDays = remember(weekConfiguration) { weekConfiguration.orderedDays }
 
     Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 18.dp),
-            horizontalArrangement = Arrangement.SpaceAround
+            horizontalArrangement = Arrangement.SpaceAround,
         ) {
-            listOf("ج", "پ", "چ", "س", "د", "ی", "ش").forEach { day ->
-                Text(text = day, color = Color.Black)
+            orderedWeekDays.forEach { day ->
+                val isWeekend = day in weekConfiguration.weekendDays
+                Text(
+                    text = weekConfiguration.dayLabelFormatter.format(day),
+                    color = if (isWeekend) weekendLabelColor else Color.Black,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
         }
 
-        CompositionLocalProvider(
-            LocalLayoutDirection provides LayoutDirection.Rtl
-        ) {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(7),
                 modifier = Modifier
@@ -76,31 +104,38 @@ fun DayOfWeekRangeView(
                     .padding(4.dp),
                 contentPadding = PaddingValues(horizontal = 15.dp, vertical = 0.dp),
                 verticalArrangement = Arrangement.Top,
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
             ) {
-                items(daysList) { day ->
-                    val candidate = SoleimaniDate.fromLocalizedStrings(mYear, mMonthint, day)
+                items(monthCells) { cell ->
+                    val candidate = cell.date
                     val isEnabled = candidate?.let(isDateEnabled) ?: false
-                    val isRangeHighlighted = candidate != null && isEnabled && startDate != null && endDate != null && candidate.isWithin(startDate, endDate)
-                    val isPendingStart = candidate != null && isEnabled && startDate != null && endDate == null && candidate == startDate
-                    val isPendingSelection = day == mDay && endDate == null && isEnabled
-                    val isHighlighted = isRangeHighlighted || isPendingStart || isPendingSelection
+                    val isWithinSelection =
+                        candidate != null && startDate != null && endDate != null &&
+                                candidate.isWithin(startDate, endDate)
+                    val isStart = candidate != null && startDate != null && candidate == startDate
+                    val isEnd = candidate != null && endDate != null && candidate == endDate
+                    val isPendingSelection =
+                        endDate == null && selectedDayValue != null &&
+                                candidate?.day == selectedDayValue && candidate?.month == selectedMonthNumber
+                    val isWeekend =
+                        candidate != null && cell.dayOfWeek in weekConfiguration.weekendDays
+                    val event = candidate?.let(eventIndicator)
+
                     val backgroundColor = when {
-                        isHighlighted -> MaterialTheme.colorScheme.primary
+                        isStart || isEnd || isPendingSelection -> MaterialTheme.colorScheme.primary
+                        isWithinSelection -> MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
                         !isEnabled -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
                         else -> Color.White
                     }
                     val contentColor = when {
-                        isHighlighted -> MaterialTheme.colorScheme.onPrimary
+                        isStart || isEnd || isPendingSelection -> MaterialTheme.colorScheme.onPrimary
                         !isEnabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        isWeekend -> weekendLabelColor
                         else -> Color.Black
                     }
-                    val emphasizeSelection = candidate != null && isEnabled && (
-                            (startDate != null && candidate == startDate) ||
-                                    (endDate != null && candidate == endDate) ||
-                                    (endDate == null && day == mDay)
-                            )
+                    val emphasizeSelection = isStart || isEnd || isPendingSelection
                     val shadowColor = if (emphasizeSelection) Purple40 else PurpleGrey80
+
                     Surface(
                         modifier = Modifier
                             .aspectRatio(1f, true)
@@ -108,52 +143,88 @@ fun DayOfWeekRangeView(
                             .shadow(
                                 color = if (isEnabled) shadowColor else PurpleGrey80.copy(alpha = 0.3f),
                                 borderRadius = 10.dp,
-                                offsetX = 0.0.dp,
+                                offsetX = 0.dp,
                                 offsetY = 3.dp,
                                 spread = 3.dp,
-                                blurRadius = 10.0.dp
+                                blurRadius = 10.dp,
                             )
                             .border(
                                 brush = Brush.verticalGradient(
                                     listOf(
-                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                                     )
                                 ),
                                 width = JlResDimens.dp1,
-                                shape = RoundedCornerShape(JlResDimens.dp10)
+                                shape = RoundedCornerShape(JlResDimens.dp10),
                             )
                             .clip(RoundedCornerShape(14.dp))
                             .clickable(
                                 enabled = isEnabled && candidate != null,
                                 onClick = {
-                                    val selectedDate = candidate ?: return@clickable
+                                    val resolved = candidate ?: return@clickable
                                     changeSelectedPart("main")
                                     handleRangeSelection(
-                                        candidate = selectedDate,
+                                        candidate = resolved,
                                         currentStart = startDate,
                                         currentEnd = endDate,
+                                        digitMode = digitMode,
                                         onStartChange = setStartDate,
                                         onEndChange = setEndDate,
                                         onDaySelected = setDay,
                                     )
                                 }
                             ),
-
                         color = backgroundColor,
                     ) {
-                        Row(
-                            Modifier.fillMaxSize(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .semantics {
+                                    if (event?.label != null) {
+                                        contentDescription = event.label
+                                    }
+                                },
                         ) {
                             Text(
-                                text = day,
+                                text = cell.dayOfMonth?.let { day ->
+                                    when (digitMode) {
+                                        DigitMode.Persian -> FormatHelper.toPersianNumber(day.toString())
+                                        DigitMode.Latin -> day.toString()
+                                    }
+                                } ?: "",
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = contentColor,
                                 fontSize = 20.sp,
-                                fontFamily = FontFamily.Cursive
+                                fontFamily = FontFamily.Cursive,
+                                modifier = Modifier.align(Alignment.Center),
                             )
+
+                            if (event != null && candidate != null && isEnabled) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .padding(bottom = 6.dp)
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        .border(
+                                            BorderStroke(1.dp, Color.White.copy(alpha = 0.7f)),
+                                            CircleShape,
+                                        )
+                                        .background(event.color),
+                                )
+                            }
+
+                            if (isStart || isEnd) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(if (isStart) Alignment.CenterStart else Alignment.CenterEnd)
+                                        .fillMaxHeight()
+                                        .width(6.dp)
+                                        .background(highlightColor.copy(alpha = 0.28f))
+                                        .zIndex(-1f)
+                                )
+                            }
                         }
                     }
                 }
@@ -166,57 +237,65 @@ private fun handleRangeSelection(
     candidate: SoleimaniDate,
     currentStart: SoleimaniDate?,
     currentEnd: SoleimaniDate?,
+    digitMode: DigitMode,
     onStartChange: (SoleimaniDate?) -> Unit,
     onEndChange: (SoleimaniDate?) -> Unit,
     onDaySelected: (String) -> Unit,
 ) {
     when {
-        currentStart == null || (currentStart != null && currentEnd != null) -> {
+        currentStart == null || currentEnd != null -> {
             onStartChange(candidate)
             onEndChange(null)
-            onDaySelected(candidate.day.toPersianNumber())
+            onDaySelected(candidate.toDayString(digitMode))
         }
-
         currentEnd == null && candidate < currentStart -> {
             onStartChange(candidate)
-            onDaySelected(candidate.day.toPersianNumber())
+            onDaySelected(candidate.toDayString(digitMode))
         }
         currentEnd == null -> {
             onEndChange(candidate)
+            onDaySelected(candidate.toDayString(digitMode))
         }
-
         candidate <= currentStart -> {
             onStartChange(candidate)
             onEndChange(null)
-            onDaySelected(candidate.day.toPersianNumber())
+            onDaySelected(candidate.toDayString(digitMode))
         }
-
-
         else -> {
             onEndChange(candidate)
+            onDaySelected(candidate.toDayString(digitMode))
         }
     }
 }
 
-fun isDateInRange(targetDate: PersionCalendar, startDate: List<Int>, endDate: List<Int>): Boolean {
-    return targetDate.isInRange(startDate, endDate)
+private fun SoleimaniDate.toDayString(mode: DigitMode): String = when (mode) {
+    DigitMode.Persian -> day.toPersianNumber()
+    DigitMode.Latin -> day.toString()
 }
 
-private fun SoleimaniDate.isWithin(start: SoleimaniDate, end: SoleimaniDate): Boolean = this >= start && this <= end
-
+private fun SoleimaniDate.isWithin(start: SoleimaniDate, end: SoleimaniDate): Boolean {
+    val (first, second) = if (start <= end) start to end else end to start
+    return this >= first && this <= second
+}
 
 @Preview
 @Composable
-fun DayOfWeekRangeViewPreview() {
+private fun DayOfWeekRangeViewPreview() {
     DayOfWeekRangeView(
-        mMonth = "5",
-        mMonthint = "5",
-        mDay = "10",
-        mYear = "2024",
+        mMonth = monthsList[4],
+        mDay = "",
+        mYear = "1403",
         startDate = null,
         endDate = null,
+        weekConfiguration = WeekConfiguration(),
+        digitMode = DigitMode.Persian,
+        weekendLabelColor = Color(0xFFEF4444),
+        highlightColor = Color(0xFF3B82F6),
+        eventIndicator = { date ->
+            if (date.day == 1) CalendarEvent(Color(0xFF10B981), "شروع ماه") else null
+        },
         setDay = {},
-        setStartDate = { _ -> },
-        setEndDate = { _ -> },
-    ) {}
+        setStartDate = {},
+        setEndDate = {},
+    )
 }

@@ -2,7 +2,6 @@ package com.msa.calendar
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -14,8 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -44,9 +41,12 @@ import com.msa.calendar.ui.view.MonthView
 import com.msa.calendar.ui.view.YearsView
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.PickerType
-import com.msa.calendar.utils.toPersianNumber
 import com.msa.calendar.utils.*
 import com.msa.calendar.utils.monthsList
+import com.msa.calendar.ui.DatePickerQuickAction
+import com.msa.calendar.utils.FormatHelper
+import com.msa.calendar.utils.toPersianNumber
+
 
 @Composable
 fun RangeCalendarScreen(
@@ -66,7 +66,14 @@ fun RangeCalendarScreen(
     val initialMonthName = monthsList.getOrElse(todayMonth - 1) { monthsList.first() }
 
     val constraints = config.constraints
-
+    val weekConfiguration = config.weekConfiguration
+    val quickActions = remember(config.quickActions, config.showTodayAction) {
+        when {
+            config.quickActions.isNotEmpty() -> config.quickActions
+            config.showTodayAction -> listOf(DatePickerQuickAction.Today)
+            else -> emptyList()
+        }
+    }
     val initialStart = remember(initialStartDate, constraints) {
         val desired = initialStartDate ?: todayDate
         constraints.nearestValidOrNull(desired)
@@ -86,21 +93,23 @@ fun RangeCalendarScreen(
     var endDate by remember { mutableStateOf<SoleimaniDate?>(initialEnd) }
 
     var mMonth by remember { mutableStateOf(monthsList.getOrElse(initialStart.month - 1) { initialMonthName }) }
-    var mMonthin by remember { mutableStateOf(initialStart.month.toPersianNumber()) }
-    var mYear by remember { mutableStateOf(initialStart.year.toPersianNumber()) }
-    var mDay by remember { mutableStateOf(initialStart.day.toPersianNumber()) }
+    var mYear by remember { mutableStateOf(initialStart.year.toDigitString(config.digitMode)) }
+    var mDay by remember { mutableStateOf(initialStart.day.toDigitString(config.digitMode)) }
 
     val strings = config.strings
     val colors = config.colors
     val shape: Shape = config.containerShape
 
-    // ✅ CLOSE THIS LAMBDA
     val updateMonthState: (String) -> Unit = { selectedMonth ->
         mMonth = selectedMonth
-        val monthIndex = monthsList.indexOf(selectedMonth)
-        if (monthIndex >= 0) {
-            mMonthin = (monthIndex + 1).toPersianNumber()
-        }
+    }
+
+    fun updateSelectionFromDate(target: SoleimaniDate) {
+        val monthName = monthsList.getOrElse(target.month - 1) { monthsList.first() }
+        mMonth = monthName
+        mYear = target.year.toDigitString(config.digitMode)
+        mDay = target.day.toDigitString(config.digitMode)
+        pickerType = PickerType.Day
     }
 
     Dialog(onDismissRequest = { onDismiss(true) }) {
@@ -135,22 +144,32 @@ fun RangeCalendarScreen(
                         setYear = { mYear = it },
                         title = strings.title,
                         subtitle = buildRangeSubtitle(strings, startDate, endDate, config.digitMode),
+                        strings = strings,
                         colors = colors,
-                        showToday = config.showTodayAction,
-                        todayLabel = strings.today,
-                        onTodayClick = {
-                            val resolvedToday = constraints.nearestValidOrNull(todayDate)
-                            val reference = resolvedToday ?: constraints.minDate ?: startDate
-                            if (reference != null) {
-                                val resolved = resolvedToday ?: reference
-                                val todayMonthName = monthsList.getOrElse(resolved.month - 1) { monthsList.first() }
-                                mMonth = todayMonthName
-                                mMonthin = resolved.month.toPersianNumber()
-                                mYear = resolved.year.toPersianNumber()
-                                mDay = resolved.day.toPersianNumber()
-                                startDate = resolved
-                                endDate = resolved
-                                pickerType = PickerType.Day
+                        quickActions = quickActions,
+                        onQuickActionClick = quick@ { action ->
+                            when (action) {
+                                DatePickerQuickAction.Today -> {
+                                    val resolvedToday = constraints.nearestValidOrNull(todayDate) ?: todayDate
+                                    updateSelectionFromDate(resolvedToday)
+                                    startDate = resolvedToday
+                                    endDate = resolvedToday
+                                }
+
+                                is DatePickerQuickAction.ClearSelection -> {
+                                    startDate = null
+                                    endDate = null
+                                    mDay = ""
+                                    pickerType = PickerType.Day
+                                }
+
+                                is DatePickerQuickAction.JumpToDate -> {
+                                    val target = action.targetDateProvider() ?: return@quick
+                                    val resolved = constraints.nearestValidOrNull(target) ?: target
+                                    updateSelectionFromDate(resolved)
+                                    startDate = resolved
+                                    endDate = if (constraints.isDateSelectable(resolved)) resolved else null
+                                }
                             }
                         }
                     )
@@ -159,16 +178,21 @@ fun RangeCalendarScreen(
                         when (state) {
                             PickerType.Day -> DayOfWeekRangeView(
                                 mMonth = mMonth,
-                                mMonthint = mMonthin, // it's already a String
                                 mDay = mDay,
                                 mYear = mYear,
                                 startDate = startDate,
                                 endDate = endDate,
+                                weekConfiguration = weekConfiguration,
+                                digitMode = config.digitMode,
+                                weekendLabelColor = colors.weekendLabelColor,
+                                highlightColor = colors.todayOutline,
+                                eventIndicator = config.eventIndicator,
                                 setDay = { mDay = it },
                                 setStartDate = { startDate = it },
                                 setEndDate = { endDate = it },
                                 isDateEnabled = { constraints.isDateSelectable(it) },
-                            ) {}
+                                changeSelectedPart = {}
+                            )
 
                             PickerType.Year -> YearsView(
                                 mYear = mYear,
@@ -178,15 +202,38 @@ fun RangeCalendarScreen(
                             PickerType.Month -> MonthView(
                                 mMonth = mMonth,
                                 onMonthClick = { updateMonthState(it) },
-                                setMonth = { mMonthin = it }
+                                setMonth = { newMonth ->
+                                    mMonth = monthsList.getOrElse(newMonth.toIntSafely()?.minus(1) ?: 0) { mMonth }
+                                }
                             )
                         }
                     }
 
-                    val isRangeComplete = startDate != null && endDate != null &&
+                    val isRangeSelectable = startDate != null && endDate != null &&
                             startDate?.let { constraints.isDateSelectable(it) } == true &&
                             endDate?.let { constraints.isDateSelectable(it) } == true
 
+                    val isRangeWithinLimit = if (startDate != null && endDate != null) {
+                        constraints.isRangeWithinLimit(startDate!!, endDate!!)
+                    } else {
+                        true
+                    }
+                    val isRangeComplete = isRangeSelectable && isRangeWithinLimit
+
+                    if (!isRangeWithinLimit && constraints.maxRangeLength != null && startDate != null && endDate != null) {
+                        val limitText = when (config.digitMode) {
+                            DigitMode.Persian -> FormatHelper.toPersianNumber(constraints.maxRangeLength.toString())
+                            DigitMode.Latin -> constraints.maxRangeLength.toString()
+                        }
+                        Text(
+                            text = "حداکثر طول بازه ${limitText} روز است.",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp, vertical = 4.dp),
+                        )
+                    }
 
                     Row(
                         modifier = Modifier
@@ -269,6 +316,10 @@ private fun buildRangeSubtitle(
         start != null && end != null -> "$start - $end"
         else -> strings.title
     }
+}
+private fun Int.toDigitString(mode: DigitMode): String = when (mode) {
+    DigitMode.Persian -> toPersianNumber()
+    DigitMode.Latin -> toString()
 }
 
 private fun SoleimaniDate.format(mode: DigitMode): String {
