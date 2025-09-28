@@ -3,12 +3,18 @@ package com.msa.persioncalendar
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
@@ -24,16 +31,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
-import com.msa.calendar.ui.DatePickerConfig
-import com.msa.calendar.ui.DatePickerConstraints
-import com.msa.calendar.ui.DatePickerStrings
-import com.msa.calendar.ui.DigitMode
-import com.msa.calendar.utils.plusDays
-import java.util.Calendar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -60,6 +60,17 @@ import com.msa.calendar.utils.addLeadingZero
 import com.msa.calendar.utils.toPersianNumber
 import com.msa.calendar.utils.toSoleimaniDate
 import java.time.DayOfWeek
+import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
+import com.msa.calendar.ui.DatePickerConfig
+import com.msa.calendar.ui.DatePickerConstraints
+import com.msa.calendar.ui.DatePickerStrings
+import com.msa.calendar.ui.DigitMode
+import com.msa.calendar.utils.plusDays
+import java.util.Calendar
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -216,141 +227,199 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
         )
     }
 
-    if (showSinglePicker) {
-        CalendarScreen(
-            onDismiss = { showSinglePicker = false },
-            onConfirm = { showSinglePicker = false },
-            config = dialogConfig,
-            onDateSelected = { date ->
-                selectedSingleDate = date
-                lastSelectionType = SelectionType.Single
-            }
-        )
-    }
-    if (showRangePicker) {
-        RangeCalendarScreen(
-            onDismiss = { showRangePicker = false },
-            setDate = { _ -> },
-            config = dialogConfig,
-            onRangeSelected = { start, end ->
-                val (first, second) = if (start <= end) start to end else end to start
-                selectedRange = SoleimaniRange(first, second)
-                lastSelectionType = SelectionType.Range
-            }
-        )
-    }
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(text = "نمونه انتخاب تاریخ فارسی") },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                ),
-            )
-        },
+    Box(
         modifier = modifier
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 24.dp, vertical = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top,
-        ) {
-            Text(
-                text = "این صفحه چند سناریو متداول استفاده از کتابخانه را نمایش می‌دهد.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        MaterialTheme.colorScheme.surface,
+                        MaterialTheme.colorScheme.background
+                    )
+                )
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-            PreferencesSection(
-                useLatinDigits = useLatinDigits,
-                onDigitsModeChanged = { useLatinDigits = it },
-                showTodayShortcut = showTodayShortcut,
-                onToggleTodayShortcut = { showTodayShortcut = it },
-                limitToNextMonth = limitToNextMonth,
-                onToggleLimitToNextMonth = { limitToNextMonth = it },
-                blockFridays = blockFridays,
-                onToggleBlockFridays = { blockFridays = it },
-                blockThirteenth = blockThirteenth,
-                onToggleBlockThirteenth = { blockThirteenth = it },
-                enableClearAction = enableClearAction,
-                onToggleClearAction = { enableClearAction = it },
-                useInternationalWeek = useInternationalWeek,
-                onToggleInternationalWeek = { useInternationalWeek = it },
-                highlightEvents = highlightEvents,
-                onToggleHighlightEvents = { highlightEvents = it },
-                limitRangeLength = limitRangeLength,
-                onToggleLimitRangeLength = { limitRangeLength = it },
+    ) {
+        if (showSinglePicker) {
+            CalendarScreen(
+                onDismiss = { showSinglePicker = false },
+                onConfirm = { showSinglePicker = false },
+                config = dialogConfig,
+                onDateSelected = { date ->
+                    selectedSingleDate = date
+                    lastSelectionType = SelectionType.Single
+                }
             )
 
 
 
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+        }
+        if (showRangePicker) {
+            RangeCalendarScreen(
+                onDismiss = { showRangePicker = false },
+                setDate = { _ -> },
+                config = dialogConfig,
+                onRangeSelected = { start, end ->
+                    val (first, second) = if (start <= end) start to end else end to start
+                    selectedRange = SoleimaniRange(first, second)
+                    lastSelectionType = SelectionType.Range
+                }
+            )
+        }
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = { Text(text = "نمونه انتخاب تاریخ فارسی") },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
+                )
+            },
+            containerColor = Color.Transparent,
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top,
             ) {
-                FilledTonalButton(onClick = { showSinglePicker = true }) {
-                    Text(text = "انتخاب تاریخ تکی")
-                }
-
-                FilledTonalButton(onClick = { showRangePicker = true }) {
-                    Text(text = "انتخاب بازه تاریخ")
-                }
-
-                FilledTonalButton(onClick = {
-                    selectedSingleDate = today
-                    lastSelectionType = SelectionType.QuickToday
-                }) {
-                    Text(text = "ثبت سریع امروز")
-                }
-
-                OutlinedButton(
-                    onClick = {
-                        selectedSingleDate = null
-                        selectedRange = null
-                        lastSelectionType = null
-                    },
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp)),
+                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp).copy(alpha = 0.85f),
+                    tonalElevation = 3.dp,
                 ) {
-                    Text(text = "پاک کردن انتخاب‌ها")
+                    Text(
+                        text = "این صفحه سناریوهای متداول استفاده از کتابخانه را با ظاهری نو و منسجم نمایش می‌دهد.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
+                    )
                 }
 
-                OutlinedButton(
-                    enabled = lastSelectionType != null,
-                    onClick = {
-                        when (lastSelectionType) {
-                            SelectionType.Single -> showSinglePicker = true
-                            SelectionType.Range -> showRangePicker = true
-                            SelectionType.QuickToday -> {
+                Spacer(modifier = Modifier.height(24.dp))
+
+                SectionCard(
+                    title = "تنظیمات تجربه",
+                    subtitle = "می‌توانید رفتار و محدودیت‌های تقویم را از این بخش شخصی‌سازی کنید.",
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    PreferencesSection(
+                        useLatinDigits = useLatinDigits,
+                        onDigitsModeChanged = { useLatinDigits = it },
+                        showTodayShortcut = showTodayShortcut,
+                        onToggleTodayShortcut = { showTodayShortcut = it },
+                        limitToNextMonth = limitToNextMonth,
+                        onToggleLimitToNextMonth = { limitToNextMonth = it },
+                        blockFridays = blockFridays,
+                        onToggleBlockFridays = { blockFridays = it },
+                        blockThirteenth = blockThirteenth,
+                        onToggleBlockThirteenth = { blockThirteenth = it },
+                        enableClearAction = enableClearAction,
+                        onToggleClearAction = { enableClearAction = it },
+                        useInternationalWeek = useInternationalWeek,
+                        onToggleInternationalWeek = { useInternationalWeek = it },
+                        highlightEvents = highlightEvents,
+                        onToggleHighlightEvents = { highlightEvents = it },
+                        limitRangeLength = limitRangeLength,
+                        onToggleLimitRangeLength = { limitRangeLength = it },
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                SectionCard(
+                    title = "انتخاب‌های سریع",
+                    subtitle = "میانبرهای کاربردی برای تست و نمایش حالات مختلف انتخاب تاریخ.",
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        FilledTonalButton(
+                            onClick = { showSinglePicker = true },
+                            modifier = Modifier.widthIn(min = 0.dp)
+                        ) {
+                            Text(text = "انتخاب تاریخ تکی")
+                        }
+
+                        FilledTonalButton(
+                            onClick = { showRangePicker = true },
+                            modifier = Modifier.widthIn(min = 0.dp)
+                        ) {
+                            Text(text = "انتخاب بازه تاریخ")
+                        }
+
+                        FilledTonalButton(
+                            onClick = {
                                 selectedSingleDate = today
-                            }
-                            null -> Unit
+                                lastSelectionType = SelectionType.QuickToday
+                            },
+                            modifier = Modifier.widthIn(min = 0.dp)
+                        ) {
+                            Text(text = "ثبت سریع امروز")
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                selectedSingleDate = null
+                                selectedRange = null
+                                lastSelectionType = null
+                            },
+                            modifier = Modifier.widthIn(min = 0.dp)
+                        ) {
+                            Text(text = "پاک کردن انتخاب‌ها")
+                        }
+
+                        OutlinedButton(
+                            enabled = lastSelectionType != null,
+                            onClick = {
+                                when (lastSelectionType) {
+                                    SelectionType.Single -> showSinglePicker = true
+                                    SelectionType.Range -> showRangePicker = true
+                                    SelectionType.QuickToday -> {
+                                        selectedSingleDate = today
+                                    }
+                                    null -> Unit
+                                }
+                            },
+                            modifier = Modifier.widthIn(min = 0.dp)
+                        ) {
+                            Text(text = "تکرار آخرین حالت")
                         }
                     }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                SectionCard(
+                    title = "گزارش انتخاب‌ها",
+                    subtitle = "جزئیات آخرین تعامل و محدودیت‌های فعال روی تقویم را بررسی کنید.",
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "تکرار آخرین حالت")
+                    SelectionSummaryCard(
+                        selectedSingleDate = selectedSingleDate,
+                        selectedRange = selectedRange,
+                        lastSelectionType = lastSelectionType,
+                        constraints = constraintConfig,
+                        limitToNextMonth = limitToNextMonth,
+                        blockFridays = blockFridays,
+                        blockThirteenth = blockThirteenth,
+                        limitRangeLength = limitRangeLength,
+                        useLatinDigits = useLatinDigits,
+                    )
                 }
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            SelectionSummaryCard(
-                selectedSingleDate = selectedSingleDate,
-                selectedRange = selectedRange,
-                lastSelectionType = lastSelectionType,
-                constraints = constraintConfig,
-                limitToNextMonth = limitToNextMonth,
-                blockFridays = blockFridays,
-                blockThirteenth = blockThirteenth,
-                limitRangeLength = limitRangeLength,
-                useLatinDigits = useLatinDigits,
-                modifier = Modifier.fillMaxWidth(),
-            )
         }
     }
 }
@@ -378,34 +447,41 @@ private fun PreferencesSection(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = "تنظیمات پیشرفته",
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        PreferenceCategoryLabel(text = "نمایش و زبان")
 
         PreferenceSwitchRow(
             label = "نمایش دکمه امروز",
+            description = "میانبر همیشه دردسترس برای بازگشت به امروز",
             checked = showTodayShortcut,
             onCheckedChange = onToggleTodayShortcut,
         )
 
         PreferenceSwitchRow(
             label = "استفاده از اعداد لاتین",
+            description = "نمایش اعداد با فرمت بین‌المللی",
             checked = useLatinDigits,
             onCheckedChange = onDigitsModeChanged,
         )
+        PreferenceSwitchRow(
+            label = "نمایش دکمه پاک کردن انتخاب",
+            description = "به کاربر اجازه می‌دهد همه انتخاب‌ها را ریست کند",
+            checked = enableClearAction,
+            onCheckedChange = onToggleClearAction,
+        )
 
+        PreferenceCategoryLabel(text = "محدودیت‌های انتخاب")
         PreferenceSwitchRow(
             label = "محدود به ۳۰ روز آینده",
             checked = limitToNextMonth,
+            description = "فقط تاریخ‌های نزدیک قابل انتخاب باشند",
             onCheckedChange = onToggleLimitToNextMonth,
         )
 
         PreferenceSwitchRow(
             label = "مسدود کردن جمعه‌ها",
+            description = "برای جلوگیری از انتخاب روزهای تعطیل آخر هفته",
             checked = blockFridays,
             onCheckedChange = onToggleBlockFridays,
         )
@@ -413,31 +489,31 @@ private fun PreferencesSection(
         PreferenceSwitchRow(
             label = "حذف روز سیزدهم",
             checked = blockThirteenth,
+            description = "روزهای خاص یا نامطلوب را غیرفعال کنید",
             onCheckedChange = onToggleBlockThirteenth,
         )
         PreferenceSwitchRow(
-            label = "نمایش دکمه پاک کردن انتخاب",
-            checked = enableClearAction,
-            onCheckedChange = onToggleClearAction,
+            label = "محدودیت بازه به ۱۰ روز",
+            description = "برای جلوگیری از انتخاب بازه‌های بسیار طولانی",
+            checked = limitRangeLength,
+            onCheckedChange = onToggleLimitRangeLength,
         )
-
+        PreferenceCategoryLabel(text = "ساختار هفته و رویدادها")
         PreferenceSwitchRow(
             label = "شروع هفته از دوشنبه",
+            description = "چیدمان بین‌المللی روزهای هفته",
             checked = useInternationalWeek,
             onCheckedChange = onToggleInternationalWeek,
         )
 
         PreferenceSwitchRow(
             label = "نمایش رویدادهای شاخص",
+            description = "رویدادهای بصری برای تاریخ‌های مهم",
             checked = highlightEvents,
             onCheckedChange = onToggleHighlightEvents,
         )
 
-        PreferenceSwitchRow(
-            label = "محدودیت بازه به ۱۰ روز",
-            checked = limitRangeLength,
-            onCheckedChange = onToggleLimitRangeLength,
-        )
+
 
     }
 }
@@ -445,27 +521,51 @@ private fun PreferencesSection(
 @Composable
 private fun PreferenceSwitchRow(
     label: String,
+    description: String? = null,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    Row (
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+        tonalElevation = 2.dp,
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                checkedTrackColor = MaterialTheme.colorScheme.primary,
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                if (description != null) {
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                )
             )
-        )
+        }
     }
 }
 
@@ -482,80 +582,78 @@ private fun SelectionSummaryCard(
     useLatinDigits: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    ElevatedCard(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        SelectionSummaryRow(
+            title = "تاریخ تکی",
+            value = selectedSingleDate?.toDisplayString()
+                ?: "هنوز تاریخی انتخاب نشده است.",
+        )
+
+        SelectionSummaryRow(
+            title = "بازه تاریخی",
+            value = selectedRange?.toDisplayString()
+                ?: "بازه‌ای انتخاب نشده است.",
+        )
+
+        AnimatedVisibility(
+            visible = lastSelectionType != null,
+            enter = fadeIn(),
+            exit = fadeOut(),
         ) {
-            Text(
-                text = "نتیجه انتخاب‌ها",
-                style = MaterialTheme.typography.titleMedium,
-            )
-
-            Divider()
-
-            SelectionSummaryRow(
-                title = "تاریخ تکی",
-                value = selectedSingleDate?.toDisplayString()
-                    ?: "هنوز تاریخی انتخاب نشده است.",
-            )
-
-            SelectionSummaryRow(
-                title = "بازه تاریخی",
-                value = selectedRange?.toDisplayString()
-                    ?: "بازه‌ای انتخاب نشده است.",
-            )
-
-            AnimatedVisibility(
-                visible = lastSelectionType != null,
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                val label = when (lastSelectionType) {
-                    SelectionType.Single -> "آخرین عمل: انتخاب تاریخ تکی"
-                    SelectionType.Range -> "آخرین عمل: انتخاب بازه"
-                    SelectionType.QuickToday -> "آخرین عمل: ثبت سریع امروز"
-                    null -> ""
-                }
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                )
+            val (label, color) = when (lastSelectionType) {
+                SelectionType.Single -> "آخرین عمل: انتخاب تاریخ تکی" to MaterialTheme.colorScheme.primary
+                SelectionType.Range -> "آخرین عمل: انتخاب بازه" to MaterialTheme.colorScheme.secondary
+                SelectionType.QuickToday -> "آخرین عمل: ثبت سریع امروز" to MaterialTheme.colorScheme.tertiary
+                null -> "" to MaterialTheme.colorScheme.primary
             }
-            Divider()
-
-            ConstraintSummary(
-                constraints = constraints,
-                limitToNextMonth = limitToNextMonth,
-                blockFridays = blockFridays,
-                blockThirteenth = blockThirteenth,
-                limitRangeLength = limitRangeLength,
-                useLatinDigits = useLatinDigits,
-            )
+            StatusPill(text = label, color = color)
         }
+        Divider()
+
+        ConstraintSummary(
+            constraints = constraints,
+            limitToNextMonth = limitToNextMonth,
+            blockFridays = blockFridays,
+            blockThirteenth = blockThirteenth,
+            limitRangeLength = limitRangeLength,
+            useLatinDigits = useLatinDigits,
+        )
     }
 }
+
 @Composable
 private fun SelectionSummaryRow(
     title: String,
     value: String,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+    Surface(
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+        tonalElevation = 2.dp,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
 }
+
 @Composable
 private fun ConstraintSummary(
     constraints: DatePickerConstraints,
@@ -598,26 +696,102 @@ private fun ConstraintSummary(
         }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(
-            text = "محدودیت‌های فعال",
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        if (rules.isEmpty()) {
+    Surface(
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
+        tonalElevation = 1.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Text(
-                text = "هیچ محدودیتی فعال نیست.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = "محدودیت‌های فعال",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
             )
-        } else {
-            rules.forEach { rule ->
+            if (rules.isEmpty()) {
                 Text(
-                    text = "• $rule",
+                    text = "هیچ محدودیتی فعال نیست.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            } else {
+                rules.forEach { rule ->
+                    Text(
+                        text = "• $rule",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun PreferenceCategoryLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+        color = MaterialTheme.colorScheme.primary,
+    )
+}
+
+@Composable
+private fun StatusPill(
+    text: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(50),
+        color = color.copy(alpha = 0.12f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.4f)),
+    ) {
+        Text(
+            text = text,
+            color = color,
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+        )
+    }
+}
+
+@Composable
+private fun SectionCard(
+    title: String,
+    subtitle: String? = null,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    ElevatedCard(
+        modifier = modifier,
+        shape = RoundedCornerShape(28.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp).copy(alpha = 0.92f))
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            content()
         }
     }
 }
