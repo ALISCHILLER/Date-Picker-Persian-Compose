@@ -174,7 +174,7 @@ data class CalendarEvent(
 @Immutable
 data class WeekConfiguration(
     val startDay: DayOfWeek = DayOfWeek.SATURDAY,
-    val weekendDays: Set<DayOfWeek> = setOf(DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
+    val weekendDays: Set<DayOfWeek> = setOf(DayOfWeek.FRIDAY),
     val dayLabelFormatter: WeekdayFormatter = WeekdayFormatter.PersianShort,
 ) {
     init {
@@ -242,19 +242,19 @@ object DatePickerDefaults {
     val ContainerShape: Shape = RoundedCornerShape(28.dp)
 
     fun colors(
-        gradientStart: Color = Color(0xFF4C1D95),
-        gradientEnd: Color = Color(0xFF7C3AED),
-        containerColor: Color = Color(0xFFF5F3FF),
-        titleTextColor: Color = Color(0xFFFEF9FF),
-        subtitleTextColor: Color = Color(0xFFFEF9FF),
-        controlIconColor: Color = Color(0xFFEDE9FE),
-        todayButtonBackground: Color = Color(0xFF8B5CF6).copy(alpha = 0.25f),
-        todayButtonContent: Color = Color(0xFFEDE9FE),
-        confirmButtonBackground: Color = Color(0xFF6D28D9),
+        gradientStart: Color = Color(0xFF0EA5E9),
+        gradientEnd: Color = Color(0xFF6366F1),
+        containerColor: Color = Color(0xFFF8FAFC),
+        titleTextColor: Color = Color(0xFFFFFFFF),
+        subtitleTextColor: Color = Color(0xFFF1F5F9),
+        controlIconColor: Color = Color(0xFFE0F2FE),
+        todayButtonBackground: Color = Color(0xFF2563EB).copy(alpha = 0.28f),
+        todayButtonContent: Color = Color(0xFFF8FAFC),
+        confirmButtonBackground: Color = Color(0xFF2563EB),
         confirmButtonContent: Color = Color.White,
-        cancelButtonContent: Color = Color(0xFF5B21B6),
-        todayOutline: Color = Color(0xFF7C3AED),
-        weekendLabelColor: Color = Color(0xFFE11D48),
+        cancelButtonContent: Color = Color(0xFF1E3A8A),
+        todayOutline: Color = Color(0xFF38BDF8),
+        weekendLabelColor: Color = Color(0xFFF97316),
     ): DatePickerColors = DatePickerColors(
         gradientStart = gradientStart,
         gradientEnd = gradientEnd,

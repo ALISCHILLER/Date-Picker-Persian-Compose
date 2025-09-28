@@ -27,22 +27,28 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.remember
 import com.msa.calendar.utils.monthsList
+import com.msa.calendar.ui.DigitMode
+import com.msa.calendar.utils.toIntSafely
 
 @Preview
 @Composable
 fun MonthViewPreview() {
     MonthView(
-        "3",
-        {},
-        {}
+        mMonth = monthsList[2],
+        selectedYear = "1402",
+        digitMode = DigitMode.Persian,
+        onMonthClick = {},
+        setMonth = {}
     )
 }
 
 @Composable
 fun MonthView(
     mMonth: String,
+    selectedYear: String,
+    digitMode: DigitMode,
     onMonthClick: (String) -> Unit,
-    setMonth: (String) ->Unit
+    setMonth: (String) -> Unit
 ) {
 
     val monthNames = monthsList
@@ -54,7 +60,9 @@ fun MonthView(
 
     val todayCalendar = remember { PersionCalendar() }
     val currentMonthIndex = todayCalendar.getMonth() - 1
-
+    val currentYear = todayCalendar.getYear()
+    val selectedYearValue = remember(selectedYear) { selectedYear.toIntSafely() }
+    val isCurrentYear = selectedYearValue == currentYear
     Column(
         modifier = selectionModifier,
         verticalArrangement = Arrangement.Center,
@@ -70,7 +78,7 @@ fun MonthView(
         ) {
             itemsIndexed(monthNames) { index, monthName ->
                 val selected = mMonth == monthName
-                val isCurrentMonth = index == currentMonthIndex
+                val isCurrentMonth = isCurrentYear && index == currentMonthIndex
                 val monthNumber = index + 1
 
                 val itemModifier = Modifier
@@ -78,7 +86,11 @@ fun MonthView(
                     .padding(dimensionResource(R.dimen.scd_small_50))
                 val onMonthSelected = {
                     onMonthClick(monthName)
-                    setMonth(monthNumber.toPersianNumber())
+                    val monthValue = when (digitMode) {
+                        DigitMode.Persian -> monthNumber.toPersianNumber()
+                        DigitMode.Latin -> monthNumber.toString()
+                    }
+                    setMonth(monthValue)
                 }
                 val textColor = when {
                     selected -> MaterialTheme.colorScheme.onPrimary

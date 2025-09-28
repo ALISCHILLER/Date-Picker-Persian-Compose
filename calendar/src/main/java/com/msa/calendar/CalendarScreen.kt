@@ -230,13 +230,21 @@ fun CalendarScreen(
 
                             PickerType.Year -> YearsView(
                                 mYear = mYear,
-                                onYearClick = { mYear = it },
+                                digitMode = config.digitMode,
+                                onYearClick = { selected ->
+                                    mYear = selected
+                                },
                             )
 
                             PickerType.Month -> MonthView(
                                 mMonth = mMonth,
-                                onMonthClick = { mMonth = it },
-                                {}
+                                selectedYear = mYear,
+                                digitMode = config.digitMode,
+                                onMonthClick = { selectedMonth ->
+                                    mMonth = selectedMonth
+                                    pickerType = PickerType.Day
+                                },
+                                setMonth = { _ -> }
                             )
 
                         }

@@ -206,14 +206,25 @@ fun RangeCalendarScreen(
 
                             PickerType.Year -> YearsView(
                                 mYear = mYear,
-                                onYearClick = { mYear = it },
+                                digitMode = config.digitMode,
+                                onYearClick = { selected ->
+                                    mYear = selected
+                                }
                             )
 
                             PickerType.Month -> MonthView(
                                 mMonth = mMonth,
-                                onMonthClick = { updateMonthState(it) },
+                                selectedYear = mYear,
+                                digitMode = config.digitMode,
+                                onMonthClick = { chosenMonth ->
+                                    updateMonthState(chosenMonth)
+                                    pickerType = PickerType.Day
+                                },
                                 setMonth = { newMonth ->
-                                    mMonth = monthsList.getOrElse(newMonth.toIntSafely()?.minus(1) ?: 0) { mMonth }
+                                    val monthIndex = newMonth.toIntSafely()?.minus(1)
+                                    if (monthIndex != null && monthIndex in monthsList.indices) {
+                                        updateMonthState(monthsList[monthIndex])
+                                    }
                                 }
                             )
                         }
