@@ -8,19 +8,19 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -29,6 +29,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -36,6 +37,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,34 +45,34 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.msa.calendar.CalendarScreen
 import com.msa.calendar.RangeCalendarScreen
 import com.msa.calendar.ui.CalendarEvent
+import com.msa.calendar.ui.DatePickerConfig
+import com.msa.calendar.ui.DatePickerConstraints
+import com.msa.calendar.ui.DatePickerDefaults
 import com.msa.calendar.ui.DatePickerQuickAction
+import com.msa.calendar.ui.DatePickerStrings
+import com.msa.calendar.ui.DigitMode
+import com.msa.calendar.ui.MonthFormatter
 import com.msa.calendar.ui.WeekConfiguration
 import com.msa.calendar.ui.WeekdayFormatter
+import com.msa.calendar.ui.YearFormatter
 import com.msa.calendar.ui.theme.PersionCalendarTheme
 import com.msa.calendar.utils.FormatHelper
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.SoleimaniDate
 import com.msa.calendar.utils.addLeadingZero
-import com.msa.calendar.utils.toPersianNumber
+import com.msa.calendar.utils.plusDays
 import com.msa.calendar.utils.toSoleimaniDate
 import java.time.DayOfWeek
-import androidx.compose.material3.surfaceColorAtElevation
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.text.font.FontWeight
-import com.msa.calendar.ui.DatePickerConfig
-import com.msa.calendar.ui.DatePickerConstraints
-import com.msa.calendar.ui.DatePickerStrings
-import com.msa.calendar.ui.DigitMode
-import com.msa.calendar.utils.plusDays
 import java.util.Calendar
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,6 +86,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 private enum class SelectionType {
     Single,
     Range,
@@ -99,6 +102,8 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
     var selectedRange by remember { mutableStateOf<SoleimaniRange?>(null) }
     var lastSelectionType by remember { mutableStateOf<SelectionType?>(null) }
     var useLatinDigits by remember { mutableStateOf(false) }
+    var useGregorianLabels by remember { mutableStateOf(false) }
+    var showGregorianYearHint by remember { mutableStateOf(false) }
     var showTodayShortcut by remember { mutableStateOf(true) }
     var limitToNextMonth by remember { mutableStateOf(false) }
     var blockFridays by remember { mutableStateOf(false) }
@@ -107,7 +112,6 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
     var useInternationalWeek by remember { mutableStateOf(false) }
     var highlightEvents by remember { mutableStateOf(true) }
     var limitRangeLength by remember { mutableStateOf(false) }
-
 
     val today = remember { PersionCalendar().toSoleimaniDate() }
 
@@ -151,18 +155,64 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
         }
     }
 
-    val nextPayday = remember(today, limitToNextMonth) {
-        today.plusDays(if (limitToNextMonth) 10 else 20) ?: today
+    val isDarkTheme = isSystemInDarkTheme()
+    val colorScheme = MaterialTheme.colorScheme
+    val datePickerColors = remember(
+        isDarkTheme,
+        colorScheme.primary,
+        colorScheme.tertiary,
+        colorScheme.surface,
+        colorScheme.onPrimary,
+    ) {
+        if (isDarkTheme) {
+            DatePickerDefaults.darkColors(
+                gradientStart = colorScheme.primary,
+                gradientEnd = colorScheme.tertiary,
+                containerColor = colorScheme.surface,
+                titleTextColor = colorScheme.onPrimary,
+                subtitleTextColor = colorScheme.onPrimary.copy(alpha = 0.88f),
+                controlIconColor = colorScheme.onPrimary.copy(alpha = 0.85f),
+                todayButtonBackground = colorScheme.primary.copy(alpha = 0.35f),
+                todayButtonContent = colorScheme.onPrimary,
+                confirmButtonBackground = colorScheme.primary,
+                confirmButtonContent = colorScheme.onPrimary,
+                cancelButtonContent = colorScheme.onPrimary.copy(alpha = 0.9f),
+                todayOutline = colorScheme.primary.copy(alpha = 0.85f),
+                weekendLabelColor = colorScheme.tertiary.copy(alpha = 0.9f),
+            )
+        } else {
+            DatePickerDefaults.lightColors(
+                gradientStart = colorScheme.primary,
+                gradientEnd = colorScheme.tertiary,
+                containerColor = colorScheme.surface,
+                titleTextColor = colorScheme.onPrimary,
+                subtitleTextColor = colorScheme.onPrimary.copy(alpha = 0.88f),
+                controlIconColor = colorScheme.onPrimary.copy(alpha = 0.8f),
+                todayButtonBackground = colorScheme.primary.copy(alpha = 0.22f),
+                todayButtonContent = colorScheme.onPrimary,
+                confirmButtonBackground = colorScheme.primary,
+                confirmButtonContent = colorScheme.onPrimary,
+                cancelButtonContent = colorScheme.primary.copy(alpha = 0.85f),
+                todayOutline = colorScheme.primary.copy(alpha = 0.9f),
+                weekendLabelColor = colorScheme.tertiary,
+            )
+        }
     }
 
-    val quickActionSet = remember(showTodayShortcut, enableClearAction, useLatinDigits, nextPayday) {
+    val upcomingMilestone = remember(today) {
+        val calendar = today.toCalendar()
+        val daysRemainingInMonth = calendar.getMonthLength() - calendar.getDay() + 1
+        today.plusDays(daysRemainingInMonth)?.copy(day = 1) ?: today
+    }
+
+    val quickActionSet = remember(showTodayShortcut, enableClearAction, useLatinDigits, upcomingMilestone) {
         buildList {
             if (showTodayShortcut) add(DatePickerQuickAction.Today)
             if (enableClearAction) add(DatePickerQuickAction.ClearSelection())
             add(
                 DatePickerQuickAction.JumpToDate(
-                    actionLabel = if (useLatinDigits) "Next payday" else "حقوق بعدی",
-                    targetDateProvider = { nextPayday }
+                    actionLabel = if (useLatinDigits) "Next milestone" else "رویداد بعدی",
+                    targetDateProvider = { upcomingMilestone }
                 )
             )
         }
@@ -178,32 +228,30 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
                         color = Color(0xFFEF4444),
                         label = if (useLatinDigits) "Disabled" else "تاریخ مسدود",
                     )
-
                     date.day == 1 -> CalendarEvent(
                         color = Color(0xFF10B981),
                         label = if (useLatinDigits) "Start of month" else "آغاز ماه",
                     )
-
                     date == today -> CalendarEvent(
                         color = Color(0xFF3B82F6),
                         label = if (useLatinDigits) "Today" else "امروز",
                     )
-
                     else -> null
                 }
             }
         }
     }
 
-    val dialogConfig = remember(
-        useLatinDigits,
-        showTodayShortcut,
-        constraintConfig,
-        weekConfiguration,
-        quickActionSet,
-        eventIndicator,
-    ) {
-        val strings = if (useLatinDigits) {
+    val digitMode = if (useLatinDigits) DigitMode.Latin else DigitMode.Persian
+    val monthFormatter = when {
+        useGregorianLabels -> MonthFormatter.Gregorian
+        useLatinDigits -> MonthFormatter.PersianWithLatinTransliteration
+        else -> MonthFormatter.Persian
+    }
+    val yearFormatter = if (showGregorianYearHint) YearFormatter.WithGregorianHint else YearFormatter.Default
+
+    val strings = remember(useLatinDigits) {
+        if (useLatinDigits) {
             DatePickerStrings(
                 title = "Select date",
                 confirm = "Confirm",
@@ -216,14 +264,31 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
         } else {
             DatePickerStrings()
         }
+    }
+
+    val dialogConfig = remember(
+        digitMode,
+        strings,
+        showTodayShortcut,
+        constraintConfig,
+        weekConfiguration,
+        quickActionSet,
+        eventIndicator,
+        monthFormatter,
+        yearFormatter,
+        datePickerColors,
+    ) {
         DatePickerConfig(
             strings = strings,
-            digitMode = if (useLatinDigits) DigitMode.Latin else DigitMode.Persian,
+            digitMode = digitMode,
             showTodayAction = showTodayShortcut,
             constraints = constraintConfig,
             weekConfiguration = weekConfiguration,
             quickActions = quickActionSet,
             eventIndicator = eventIndicator,
+            monthFormatter = monthFormatter,
+            yearFormatter = yearFormatter,
+            colors = datePickerColors,
         )
     }
 
@@ -239,7 +304,6 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
                     )
                 )
             )
-
     ) {
         if (showSinglePicker) {
             CalendarScreen(
@@ -251,9 +315,6 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
                     lastSelectionType = SelectionType.Single
                 }
             )
-
-
-
         }
         if (showRangePicker) {
             RangeCalendarScreen(
@@ -315,6 +376,10 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
                     PreferencesSection(
                         useLatinDigits = useLatinDigits,
                         onDigitsModeChanged = { useLatinDigits = it },
+                        useGregorianLabels = useGregorianLabels,
+                        onToggleGregorianLabels = { useGregorianLabels = it },
+                        showGregorianYearHint = showGregorianYearHint,
+                        onToggleGregorianYearHint = { showGregorianYearHint = it },
                         showTodayShortcut = showTodayShortcut,
                         onToggleTodayShortcut = { showTodayShortcut = it },
                         limitToNextMonth = limitToNextMonth,
@@ -387,9 +452,7 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
                                 when (lastSelectionType) {
                                     SelectionType.Single -> showSinglePicker = true
                                     SelectionType.Range -> showRangePicker = true
-                                    SelectionType.QuickToday -> {
-                                        selectedSingleDate = today
-                                    }
+                                    SelectionType.QuickToday -> selectedSingleDate = today
                                     null -> Unit
                                 }
                             },
@@ -417,6 +480,10 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
                         blockThirteenth = blockThirteenth,
                         limitRangeLength = limitRangeLength,
                         useLatinDigits = useLatinDigits,
+                        digitMode = digitMode,
+                        monthFormatter = monthFormatter,
+                        yearFormatter = yearFormatter,
+                        weekConfiguration = weekConfiguration,
                     )
                 }
             }
@@ -428,6 +495,10 @@ fun CalendarShowcaseScreen(modifier: Modifier = Modifier) {
 private fun PreferencesSection(
     useLatinDigits: Boolean,
     onDigitsModeChanged: (Boolean) -> Unit,
+    useGregorianLabels: Boolean,
+    onToggleGregorianLabels: (Boolean) -> Unit,
+    showGregorianYearHint: Boolean,
+    onToggleGregorianYearHint: (Boolean) -> Unit,
     showTodayShortcut: Boolean,
     onToggleTodayShortcut: (Boolean) -> Unit,
     limitToNextMonth: Boolean,
@@ -465,6 +536,18 @@ private fun PreferencesSection(
             onCheckedChange = onDigitsModeChanged,
         )
         PreferenceSwitchRow(
+            label = "نمایش ماه‌های میلادی",
+            description = "نام ماه‌ها بر اساس تقویم میلادی نمایش داده شود",
+            checked = useGregorianLabels,
+            onCheckedChange = onToggleGregorianLabels,
+        )
+        PreferenceSwitchRow(
+            label = "نمایش سال میلادی در عنوان",
+            description = "در کنار سال شمسی، معادل میلادی نیز نشان داده شود",
+            checked = showGregorianYearHint,
+            onCheckedChange = onToggleGregorianYearHint,
+        )
+        PreferenceSwitchRow(
             label = "نمایش دکمه پاک کردن انتخاب",
             description = "به کاربر اجازه می‌دهد همه انتخاب‌ها را ریست کند",
             checked = enableClearAction,
@@ -498,6 +581,7 @@ private fun PreferencesSection(
             checked = limitRangeLength,
             onCheckedChange = onToggleLimitRangeLength,
         )
+
         PreferenceCategoryLabel(text = "ساختار هفته و رویدادها")
         PreferenceSwitchRow(
             label = "شروع هفته از دوشنبه",
@@ -512,9 +596,6 @@ private fun PreferencesSection(
             checked = highlightEvents,
             onCheckedChange = onToggleHighlightEvents,
         )
-
-
-
     }
 }
 
@@ -580,22 +661,28 @@ private fun SelectionSummaryCard(
     blockThirteenth: Boolean,
     limitRangeLength: Boolean,
     useLatinDigits: Boolean,
+    digitMode: DigitMode,
+    monthFormatter: MonthFormatter,
+    yearFormatter: YearFormatter,
+    weekConfiguration: WeekConfiguration,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        val singleTitle = if (useLatinDigits) "Single date" else "تاریخ تکی"
+        val noSingleValue = if (useLatinDigits) "No date selected yet." else "هنوز تاریخی انتخاب نشده است."
         SelectionSummaryRow(
-            title = "تاریخ تکی",
-            value = selectedSingleDate?.toDisplayString()
-                ?: "هنوز تاریخی انتخاب نشده است.",
+            title = singleTitle,
+            value = selectedSingleDate?.toDisplayString(digitMode, monthFormatter, yearFormatter) ?: noSingleValue,
         )
 
+        val rangeTitle = if (useLatinDigits) "Date range" else "بازه تاریخی"
+        val noRangeValue = if (useLatinDigits) "No range selected." else "بازه‌ای انتخاب نشده است."
         SelectionSummaryRow(
-            title = "بازه تاریخی",
-            value = selectedRange?.toDisplayString()
-                ?: "بازه‌ای انتخاب نشده است.",
+            title = rangeTitle,
+            value = selectedRange?.toDisplayString(digitMode, monthFormatter, yearFormatter) ?: noRangeValue,
         )
 
         AnimatedVisibility(
@@ -604,9 +691,9 @@ private fun SelectionSummaryCard(
             exit = fadeOut(),
         ) {
             val (label, color) = when (lastSelectionType) {
-                SelectionType.Single -> "آخرین عمل: انتخاب تاریخ تکی" to MaterialTheme.colorScheme.primary
-                SelectionType.Range -> "آخرین عمل: انتخاب بازه" to MaterialTheme.colorScheme.secondary
-                SelectionType.QuickToday -> "آخرین عمل: ثبت سریع امروز" to MaterialTheme.colorScheme.tertiary
+                SelectionType.Single -> (if (useLatinDigits) "Last action: single date" else "آخرین عمل: انتخاب تاریخ تکی") to MaterialTheme.colorScheme.primary
+                SelectionType.Range -> (if (useLatinDigits) "Last action: range selection" else "آخرین عمل: انتخاب بازه") to MaterialTheme.colorScheme.secondary
+                SelectionType.QuickToday -> (if (useLatinDigits) "Last action: quick today" else "آخرین عمل: ثبت سریع امروز") to MaterialTheme.colorScheme.tertiary
                 null -> "" to MaterialTheme.colorScheme.primary
             }
             StatusPill(text = label, color = color)
@@ -620,6 +707,10 @@ private fun SelectionSummaryCard(
             blockThirteenth = blockThirteenth,
             limitRangeLength = limitRangeLength,
             useLatinDigits = useLatinDigits,
+            digitMode = digitMode,
+            monthFormatter = monthFormatter,
+            yearFormatter = yearFormatter,
+            weekConfiguration = weekConfiguration,
         )
     }
 }
@@ -662,37 +753,72 @@ private fun ConstraintSummary(
     blockThirteenth: Boolean,
     limitRangeLength: Boolean,
     useLatinDigits: Boolean,
+    digitMode: DigitMode,
+    monthFormatter: MonthFormatter,
+    yearFormatter: YearFormatter,
+    weekConfiguration: WeekConfiguration,
 ) {
-    // Snapshot to local vals to enable smart cast
     val min = constraints.minDate
     val max = constraints.maxDate
     val disabled = constraints.disabledDates
-    val maxRange = constraints.maxRangeLength  // <— این خط را اضافه کن
+    val maxRange = constraints.maxRangeLength
+
+    val minText = min?.toDisplayString(digitMode, monthFormatter, yearFormatter)
+    val maxText = max?.toDisplayString(digitMode, monthFormatter, yearFormatter)
 
     val rules = buildList {
+        val weekStart = weekConfiguration.startDay.toDisplayName(useLatinDigits)
+        val weekendList = weekConfiguration.weekendDays
+            .sortedBy { it.value }
+            .joinToString(separator = if (useLatinDigits) ", " else "، ") { it.toDisplayName(useLatinDigits) }
+
+        add(if (useLatinDigits) "Week starts on $weekStart." else "شروع هفته از $weekStart است.")
+        add(if (useLatinDigits) "Weekend days: $weekendList." else "روزهای تعطیل: $weekendList.")
+
         if (limitToNextMonth && min != null && max != null) {
-            add("انتخاب تاریخ تنها بین ${min.toDisplayString()} تا ${max.toDisplayString()} امکان‌پذیر است.")
+            val message = if (useLatinDigits) {
+                "Selection limited to dates between $minText and $maxText."
+            } else {
+                "انتخاب تاریخ تنها بین $minText تا $maxText امکان‌پذیر است."
+            }
+            add(message)
         }
-        if (blockFridays) add("روزهای جمعه برای انتخاب غیرفعال شده‌اند.")
+
+        if (blockFridays) {
+            add(if (useLatinDigits) "Fridays are disabled." else "روزهای جمعه برای انتخاب غیرفعال شده‌اند.")
+        }
 
         if (blockThirteenth) {
             val blockedCount = disabled.size
-            val suffix = if (blockedCount > 0) " ($blockedCount تاریخ)" else ""
-            add("روز سیزدهم هر ماه مسدود است$suffix.")
+            val countText = blockedCount.toDigitString(digitMode)
+            val suffix = if (blockedCount > 0) {
+                if (useLatinDigits) " ($countText dates)" else " ($countText تاریخ)"
+            } else ""
+            val message = if (useLatinDigits) {
+                "The 13th of each month is disabled$suffix."
+            } else {
+                "روز سیزدهم هر ماه مسدود است$suffix."
+            }
+            add(message)
         }
 
-        // به‌جای دسترسی مستقیم به constraints.maxRangeLength از maxRange استفاده کن
         if (limitRangeLength && maxRange != null) {
-            val limitText = if (useLatinDigits) {
-                addLeadingZero(maxRange) // یا فقط maxRange.toString()
+            val limitText = maxRange.toDigitString(digitMode)
+            val message = if (useLatinDigits) {
+                "Maximum range length is set to $limitText days."
             } else {
-                FormatHelper.toPersianNumber(addLeadingZero(maxRange))
+                "حداکثر طول بازه $limitText روز تعریف شده است."
             }
-            add("حداکثر طول بازه $limitText روز تعریف شده است.")
+            add(message)
         }
 
         if (!limitToNextMonth && min != null && max != null) {
-            add("محدوده فعال از ${min.toDisplayString()} تا ${max.toDisplayString()} تعیین شده است.")
+            val message = if (useLatinDigits) {
+                "Active window spans from $minText to $maxText."
+            } else {
+                "محدوده فعال از $minText تا $maxText تعیین شده است."
+            }
+            add(message)
         }
     }
 
@@ -801,17 +927,28 @@ private data class SoleimaniRange(
     val end: SoleimaniDate,
 )
 
-private fun SoleimaniRange.toDisplayString(): String {
-    return "${start.toDisplayString()} تا ${end.toDisplayString()}"
+private fun SoleimaniRange.toDisplayString(
+    digitMode: DigitMode,
+    monthFormatter: MonthFormatter,
+    yearFormatter: YearFormatter,
+): String {
+    val separator = if (digitMode == DigitMode.Latin) " to " else " تا "
+    return buildString {
+        append(start.toDisplayString(digitMode, monthFormatter, yearFormatter))
+        append(separator)
+        append(end.toDisplayString(digitMode, monthFormatter, yearFormatter))
+    }
 }
 
-
-
-private fun SoleimaniDate.toDisplayString(): String {
-    val yearText = year.toPersianNumber()
-    val monthText = FormatHelper.toPersianNumber(addLeadingZero(month))
-    val dayText = FormatHelper.toPersianNumber(addLeadingZero(day))
-    return "$yearText/$monthText/$dayText"
+private fun SoleimaniDate.toDisplayString(
+    digitMode: DigitMode,
+    monthFormatter: MonthFormatter,
+    yearFormatter: YearFormatter,
+): String {
+    val dayText = day.toDigitString(digitMode, padWithZero = true)
+    val monthText = monthFormatter.format(month, digitMode)
+    val yearText = yearFormatter.format(year, digitMode)
+    return "$dayText $monthText $yearText"
 }
 
 private fun generateThirteenthBlackouts(
@@ -832,6 +969,24 @@ private fun generateThirteenthBlackouts(
         cursor = SoleimaniDate(nextMonth.getYear(), nextMonth.getMonth(), 13)
     }
     return blockedDates
+}
+
+private fun Int.toDigitString(digitMode: DigitMode, padWithZero: Boolean = false): String {
+    val raw = if (padWithZero) addLeadingZero(this) else toString()
+    return when (digitMode) {
+        DigitMode.Persian -> FormatHelper.toPersianNumber(raw)
+        DigitMode.Latin -> raw
+    }
+}
+
+private fun DayOfWeek.toDisplayName(useLatinDigits: Boolean): String = when (this) {
+    DayOfWeek.SATURDAY -> if (useLatinDigits) "Saturday" else "شنبه"
+    DayOfWeek.SUNDAY -> if (useLatinDigits) "Sunday" else "یکشنبه"
+    DayOfWeek.MONDAY -> if (useLatinDigits) "Monday" else "دوشنبه"
+    DayOfWeek.TUESDAY -> if (useLatinDigits) "Tuesday" else "سه‌شنبه"
+    DayOfWeek.WEDNESDAY -> if (useLatinDigits) "Wednesday" else "چهارشنبه"
+    DayOfWeek.THURSDAY -> if (useLatinDigits) "Thursday" else "پنجشنبه"
+    DayOfWeek.FRIDAY -> if (useLatinDigits) "Friday" else "جمعه"
 }
 
 @Preview(showBackground = true)

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -46,12 +45,10 @@ import com.msa.calendar.ui.view.YearsView
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.PickerType
 import com.msa.calendar.utils.*
-import com.msa.calendar.utils.monthsList
 import com.msa.calendar.ui.DatePickerQuickAction
 import com.msa.calendar.utils.FormatHelper
 import com.msa.calendar.utils.toPersianNumber
-
-
+import androidx.compose.runtime.LaunchedEffect
 @Composable
 fun RangeCalendarScreen(
     onDismiss: (Boolean) -> Unit,
@@ -67,7 +64,6 @@ fun RangeCalendarScreen(
     val todayMonth = todayCalendar.getMonth()
     val todayYear = todayCalendar.getYear()
     val todayDate = remember { SoleimaniDate(todayYear, todayMonth, todayDay) }
-    val initialMonthName = monthsList.getOrElse(todayMonth - 1) { monthsList.first() }
 
     val constraints = config.constraints
     val weekConfiguration = config.weekConfiguration
@@ -96,23 +92,28 @@ fun RangeCalendarScreen(
     var startDate by remember { mutableStateOf<SoleimaniDate?>(initialStart) }
     var endDate by remember { mutableStateOf<SoleimaniDate?>(initialEnd) }
 
-    var mMonth by remember { mutableStateOf(monthsList.getOrElse(initialStart.month - 1) { initialMonthName }) }
-    var mYear by remember { mutableStateOf(initialStart.year.toDigitString(config.digitMode)) }
-    var mDay by remember { mutableStateOf(initialStart.day.toDigitString(config.digitMode)) }
+    var visibleMonth by remember { mutableStateOf(initialStart.month.coerceIn(1, 12)) }
+    var visibleYear by remember { mutableStateOf(initialStart.year) }
+    var pendingDay by remember { mutableStateOf<Int?>(initialStart.day) }
+
+    LaunchedEffect(visibleMonth, visibleYear) {
+        adjustDayIfOutOfBounds(
+            dayValue = pendingDay,
+            month = visibleMonth,
+            year = visibleYear,
+        )?.let { coerced ->
+            pendingDay = coerced
+        }
+    }
 
     val strings = config.strings
     val colors = config.colors
     val shape: Shape = config.containerShape
 
-    val updateMonthState: (String) -> Unit = { selectedMonth ->
-        mMonth = selectedMonth
-    }
-
     fun updateSelectionFromDate(target: SoleimaniDate) {
-        val monthName = monthsList.getOrElse(target.month - 1) { monthsList.first() }
-        mMonth = monthName
-        mYear = target.year.toDigitString(config.digitMode)
-        mDay = target.day.toDigitString(config.digitMode)
+        visibleMonth = target.month.coerceIn(1, 12)
+        visibleYear = target.year
+        pendingDay = target.day
         pickerType = PickerType.Day
     }
 
@@ -143,15 +144,56 @@ fun RangeCalendarScreen(
                         .animateContentSize()
                 ) {
 
+                    val monthLabel = remember(visibleMonth, config.monthFormatter, config.digitMode) {
+                        config.monthFormatter.format(visibleMonth, config.digitMode)
+                    }
+                    val yearLabel = remember(visibleYear, config.yearFormatter, config.digitMode) {
+                        config.yearFormatter.format(visibleYear, config.digitMode)
+                    }
+                    val effectiveYearRange = remember(
+                        config.yearRange,
+                        visibleYear,
+                        todayYear,
+                        startDate,
+                        endDate,
+                        constraints,
+                    ) {
+                        val candidates = mutableListOf(
+                            config.yearRange.first,
+                            config.yearRange.last,
+                            visibleYear,
+                            todayYear,
+                        )
+                        startDate?.let { candidates += it.year }
+                        endDate?.let { candidates += it.year }
+                        constraints.minDate?.let { candidates += it.year }
+                        constraints.maxDate?.let { candidates += it.year }
+                        val minYear = candidates.minOrNull() ?: visibleYear
+                        val maxYear = candidates.maxOrNull() ?: visibleYear
+                        minYear..maxYear
+                    }
+
                     CalendarView(
-                        mMonth = mMonth,
-                        mDay = mDay,
-                        mYear = mYear,
+                        monthLabel = monthLabel,
+                        yearLabel = yearLabel,
                         pickerTypeChang = { pickerType = it },
                         pickerType = pickerType,
-                        setDay = { mDay = it },
-                        setMonth = { monthName -> updateMonthState(monthName) },
-                        setYear = { mYear = it },
+                        onPreviousMonth = {
+                            if (visibleMonth == 1) {
+                                visibleMonth = 12
+                                visibleYear -= 1
+                            } else {
+                                visibleMonth -= 1
+                            }
+                        },
+                        onNextMonth = {
+                            if (visibleMonth == 12) {
+                                visibleMonth = 1
+                                visibleYear += 1
+                            } else {
+                                visibleMonth += 1
+                            }
+                        },
                         title = strings.title,
                         subtitle = buildRangeSubtitle(strings, startDate, endDate, config.digitMode),
                         strings = strings,
@@ -169,7 +211,7 @@ fun RangeCalendarScreen(
                                 is DatePickerQuickAction.ClearSelection -> {
                                     startDate = null
                                     endDate = null
-                                    mDay = ""
+                                    pendingDay = null
                                     pickerType = PickerType.Day
                                 }
 
@@ -187,9 +229,9 @@ fun RangeCalendarScreen(
                     Crossfade(targetState = pickerType, label = "") { state ->
                         when (state) {
                             PickerType.Day -> DayOfWeekRangeView(
-                                mMonth = mMonth,
-                                mDay = mDay,
-                                mYear = mYear,
+                                month = visibleMonth,
+                                selectedDay = pendingDay,
+                                year = visibleYear,
                                 startDate = startDate,
                                 endDate = endDate,
                                 weekConfiguration = weekConfiguration,
@@ -197,7 +239,7 @@ fun RangeCalendarScreen(
                                 weekendLabelColor = colors.weekendLabelColor,
                                 highlightColor = colors.todayOutline,
                                 eventIndicator = config.eventIndicator,
-                                setDay = { mDay = it },
+                                onDaySelected = { pendingDay = it },
                                 setStartDate = { startDate = it },
                                 setEndDate = { endDate = it },
                                 isDateEnabled = { constraints.isDateSelectable(it) },
@@ -205,27 +247,27 @@ fun RangeCalendarScreen(
                             )
 
                             PickerType.Year -> YearsView(
-                                mYear = mYear,
+                                selectedYear = visibleYear,
                                 digitMode = config.digitMode,
+                                yearFormatter = config.yearFormatter,
+                                yearRange = effectiveYearRange,
+                                colors = colors,
                                 onYearClick = { selected ->
-                                    mYear = selected
+                                    visibleYear = selected
                                 }
                             )
 
                             PickerType.Month -> MonthView(
-                                mMonth = mMonth,
-                                selectedYear = mYear,
+                                selectedMonth = visibleMonth,
+                                displayedYear = visibleYear,
                                 digitMode = config.digitMode,
-                                onMonthClick = { chosenMonth ->
-                                    updateMonthState(chosenMonth)
+                                monthFormatter = config.monthFormatter,
+                                colors = colors,
+                                onMonthSelected = { selectedMonth ->
+                                    visibleMonth = selectedMonth
                                     pickerType = PickerType.Day
                                 },
-                                setMonth = { newMonth ->
-                                    val monthIndex = newMonth.toIntSafely()?.minus(1)
-                                    if (monthIndex != null && monthIndex in monthsList.indices) {
-                                        updateMonthState(monthsList[monthIndex])
-                                    }
-                                }
+
                             )
                         }
                     }
@@ -347,10 +389,6 @@ private fun buildRangeSubtitle(
         start != null && end != null -> "$start - $end"
         else -> strings.title
     }
-}
-private fun Int.toDigitString(mode: DigitMode): String = when (mode) {
-    DigitMode.Persian -> toPersianNumber()
-    DigitMode.Latin -> toString()
 }
 
 private fun SoleimaniDate.format(mode: DigitMode): String {

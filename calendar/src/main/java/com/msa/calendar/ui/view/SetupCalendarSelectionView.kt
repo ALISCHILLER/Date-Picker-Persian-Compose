@@ -34,9 +34,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.msa.calendar.utils.PickerType
-import com.msa.calendar.utils.monthsList
-import com.msa.calendar.utils.toIntSafely
-import com.msa.calendar.utils.toPersianNumber
 import com.msa.calendar.ui.DatePickerColors
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.remember
@@ -49,9 +46,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.draw.clip
 import kotlin.math.max
-
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.filled.Event
@@ -67,14 +62,12 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CalendarView(
-    mMonth: String,
-    mDay: String,
-    mYear: String,
+    monthLabel: String,
+    yearLabel: String,
     pickerTypeChang: (PickerType) -> Unit,
-    pickerType: (PickerType),
-    setDay: (String) -> Unit,
-    setMonth: (String) -> Unit,
-    setYear: (String) -> Unit,
+    pickerType: PickerType,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit,
     title: String,
     subtitle: String,
     strings: DatePickerStrings,
@@ -132,14 +125,7 @@ fun CalendarView(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     CalendarNavigationButton(
-                        onClick = {
-                            decreaseMonth(
-                                mMonth = mMonth,
-                                mYear = mYear,
-                                setMonth = setMonth,
-                                setYear = setYear,
-                            )
-                        },
+                        onClick = onPreviousMonth,
                         icon = Icons.Default.KeyboardArrowLeft,
                         contentDescription = "Previous Month",
                         colors = colors,
@@ -154,7 +140,7 @@ fun CalendarView(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         CalendarSelectorButton(
-                            text = mYear,
+                            text = yearLabel,
                             isActive = pickerType == PickerType.Year,
                             onClick = {
                                 if (pickerType != PickerType.Year) pickerTypeChang(PickerType.Year)
@@ -163,7 +149,7 @@ fun CalendarView(
                             colors = colors,
                         )
                         CalendarSelectorButton(
-                            text = mMonth,
+                            text = monthLabel,
                             isActive = pickerType == PickerType.Month,
                             onClick = {
                                 if (pickerType != PickerType.Month)
@@ -179,15 +165,7 @@ fun CalendarView(
                     Spacer(modifier = Modifier.width(12.dp))
 
                     CalendarNavigationButton(
-                        onClick = {
-                            increaseMonth(
-                                mMonth = mMonth,
-                                mYear = mYear,
-                                setMonth = setMonth,
-                                setYear = setYear,
-                            )
-
-                        },
+                        onClick = onNextMonth,
                         icon = Icons.Default.KeyboardArrowRight,
                         contentDescription = "Next Month",
                         colors = colors,
@@ -296,41 +274,5 @@ private fun quickActionIcon(action: DatePickerQuickAction) = when (action) {
     DatePickerQuickAction.Today -> Icons.Filled.Today
     is DatePickerQuickAction.ClearSelection -> Icons.Filled.HighlightOff
     is DatePickerQuickAction.JumpToDate -> Icons.Filled.Event
-}
 
-
-private fun increaseMonth(
-    mMonth: String,
-    mYear: String,
-    setMonth: (String) -> Unit,
-    setYear: (String) -> Unit
-) {
-    val currentIndex = monthsList.indexOf(mMonth)
-    if (currentIndex in 0 until monthsList.lastIndex) {
-        setMonth(monthsList[currentIndex + 1])
-    } else if (currentIndex == monthsList.lastIndex) {
-        setMonth(monthsList.first())
-        val nextYear = mYear.toIntSafely()?.plus(1)
-        if (nextYear != null) {
-            setYear(nextYear.toPersianNumber())
-        }
-    }
-}
-
-private fun decreaseMonth(
-    mMonth: String,
-    mYear: String,
-    setMonth: (String) -> Unit,
-    setYear: (String) -> Unit
-) {
-    val currentIndex = monthsList.indexOf(mMonth)
-    if (currentIndex > 0) {
-        setMonth(monthsList[currentIndex - 1])
-    } else if (currentIndex == 0) {
-        setMonth(monthsList.last())
-        val previousYear = mYear.toIntSafely()?.minus(1)
-        if (previousYear != null) {
-            setYear(previousYear.toPersianNumber())
-        }
-    }
 }

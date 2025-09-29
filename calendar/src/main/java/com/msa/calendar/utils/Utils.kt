@@ -3,38 +3,23 @@ package com.msa.calendar.utils
 
 import java.time.DayOfWeek
 
-val monthsList = listOf(
-    "فروردین",
-    "اردیبهشت",
-    "خرداد",
-    "تیر",
-    "مرداد",
-    "شهریور",
-    "مهر",
-    "آبان",
-    "آذر",
-    "دی",
-    "بهمن",
-    "اسفند",
-)
+
 data class MonthDayCell(
     val dayOfMonth: Int?,
     val date: SoleimaniDate?,
     val dayOfWeek: DayOfWeek,
 )
 
-fun buildMonthCells(monthName: String, year: String, startDay: DayOfWeek): List<MonthDayCell> {
-    val monthIndex = monthsList.indexOf(monthName)
-    if (monthIndex == -1) {
+fun buildMonthCells(month: Int, year: Int, startDay: DayOfWeek): List<MonthDayCell> {
+    if (month !in 1..12) {
         return emptyList()
     }
-    val yearInt = year.toIntSafely() ?: PersionCalendar().getYear()
-    val firstDayOfMonth = PersionCalendar(yearInt, monthIndex + 1, 1)
+    val firstDayOfMonth = PersionCalendar(year, month, 1)
     val firstDay = firstDayOfMonth.dayOfWeek().toDayOfWeek()
     val daysInMonth = when {
-        monthIndex < 6 -> 31
-        monthIndex < 11 -> 30
-        else -> if (PersionCalendar(yearInt, 12, 1).isLeap()) 30 else 29
+        month <= 6 -> 31
+        month <= 11 -> 30
+        else -> if (PersionCalendar(year, 12, 1).isLeap()) 30 else 29
     }
     val offset = ((firstDay.value - startDay.value + 7) % 7)
 
@@ -53,7 +38,7 @@ fun buildMonthCells(monthName: String, year: String, startDay: DayOfWeek): List<
             add(
                 MonthDayCell(
                     dayOfMonth = day,
-                    date = SoleimaniDate(yearInt, monthIndex + 1, day),
+                    date = SoleimaniDate(year, month, day),
                     dayOfWeek = dayOfWeekFromOffset(startDay, cellOffset),
                 )
             )

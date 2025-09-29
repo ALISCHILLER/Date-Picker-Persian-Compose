@@ -1,18 +1,25 @@
 package com.msa.calendar.ui.view
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -34,29 +41,23 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import com.msa.calendar.components.shadow
-import com.msa.calendar.ui.theme.Purple40
-import com.msa.calendar.ui.theme.PurpleGrey80
 import com.msa.calendar.ui.CalendarEvent
+import com.msa.calendar.ui.DatePickerDefaults
 import com.msa.calendar.ui.DigitMode
 import com.msa.calendar.ui.WeekConfiguration
-import com.msa.calendar.utils.*
+import com.msa.calendar.ui.theme.Purple40
+import com.msa.calendar.ui.theme.PurpleGrey80
+import com.msa.calendar.utils.FormatHelper
 import com.msa.calendar.utils.JlResDimens
 import com.msa.calendar.utils.SoleimaniDate
-import com.msa.calendar.utils.toPersianNumber
+import com.msa.calendar.utils.buildMonthCells
 
 @Composable
 fun DayOfWeekRangeView(
-    mMonth: String,
-    mDay: String,
-    mYear: String,
+    month: Int,
+    selectedDay: Int?,
+    year: Int,
     startDate: SoleimaniDate?,
     endDate: SoleimaniDate?,
     weekConfiguration: WeekConfiguration,
@@ -64,19 +65,16 @@ fun DayOfWeekRangeView(
     weekendLabelColor: Color,
     highlightColor: Color,
     eventIndicator: (SoleimaniDate) -> CalendarEvent?,
-    setDay: (String) -> Unit,
+    onDaySelected: (Int?) -> Unit,
     setStartDate: (SoleimaniDate?) -> Unit,
     setEndDate: (SoleimaniDate?) -> Unit,
     isDateEnabled: (SoleimaniDate) -> Boolean = { true },
     changeSelectedPart: (String) -> Unit = {},
 ) {
-    val monthCells = remember(mMonth, mYear, weekConfiguration.startDay) {
-        buildMonthCells(mMonth, mYear, weekConfiguration.startDay)
+    val monthCells = remember(month, year, weekConfiguration.startDay) {
+        buildMonthCells(month, year, weekConfiguration.startDay)
     }
-    val selectedDayValue = remember(mDay) { mDay.toIntSafely() }
-    val selectedMonthNumber = remember(mMonth) {
-        monthsList.indexOf(mMonth).takeIf { it >= 0 }?.plus(1)
-    }
+    val selectedDayValue = selectedDay
     val orderedWeekDays = remember(weekConfiguration) { weekConfiguration.orderedDays }
 
     Column {
@@ -90,7 +88,7 @@ fun DayOfWeekRangeView(
                 val isWeekend = day in weekConfiguration.weekendDays
                 Text(
                     text = weekConfiguration.dayLabelFormatter.format(day),
-                    color = if (isWeekend) weekendLabelColor else Color.Black,
+                    color = if (isWeekend) weekendLabelColor else MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
@@ -116,7 +114,7 @@ fun DayOfWeekRangeView(
                     val isEnd = candidate != null && endDate != null && candidate == endDate
                     val isPendingSelection =
                         endDate == null && selectedDayValue != null &&
-                                candidate?.day == selectedDayValue && candidate?.month == selectedMonthNumber
+                                candidate?.day == selectedDayValue && candidate?.month == month
                     val isWeekend =
                         candidate != null && cell.dayOfWeek in weekConfiguration.weekendDays
                     val event = candidate?.let(eventIndicator)
@@ -125,13 +123,14 @@ fun DayOfWeekRangeView(
                         isStart || isEnd || isPendingSelection -> MaterialTheme.colorScheme.primary
                         isWithinSelection -> MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
                         !isEnabled -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
-                        else -> Color.White
+                        isWeekend -> weekendLabelColor.copy(alpha = 0.12f)
+                        else -> MaterialTheme.colorScheme.surface
                     }
                     val contentColor = when {
                         isStart || isEnd || isPendingSelection -> MaterialTheme.colorScheme.onPrimary
                         !isEnabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                         isWeekend -> weekendLabelColor
-                        else -> Color.Black
+                        else -> MaterialTheme.colorScheme.onSurface
                     }
                     val emphasizeSelection = isStart || isEnd || isPendingSelection
                     val shadowColor = if (emphasizeSelection) Purple40 else PurpleGrey80
@@ -168,10 +167,9 @@ fun DayOfWeekRangeView(
                                         candidate = resolved,
                                         currentStart = startDate,
                                         currentEnd = endDate,
-                                        digitMode = digitMode,
                                         onStartChange = setStartDate,
                                         onEndChange = setEndDate,
-                                        onDaySelected = setDay,
+                                        onDaySelected = onDaySelected,
                                     )
                                 }
                             ),
@@ -208,7 +206,10 @@ fun DayOfWeekRangeView(
                                         .size(6.dp)
                                         .clip(CircleShape)
                                         .border(
-                                            BorderStroke(1.dp, Color.White.copy(alpha = 0.7f)),
+                                            BorderStroke(
+                                                1.dp,
+                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                            ),
                                             CircleShape,
                                         )
                                         .background(event.color),
@@ -237,40 +238,34 @@ private fun handleRangeSelection(
     candidate: SoleimaniDate,
     currentStart: SoleimaniDate?,
     currentEnd: SoleimaniDate?,
-    digitMode: DigitMode,
     onStartChange: (SoleimaniDate?) -> Unit,
     onEndChange: (SoleimaniDate?) -> Unit,
-    onDaySelected: (String) -> Unit,
+    onDaySelected: (Int?) -> Unit,
 ) {
     when {
         currentStart == null || currentEnd != null -> {
             onStartChange(candidate)
             onEndChange(null)
-            onDaySelected(candidate.toDayString(digitMode))
+            onDaySelected(candidate.day)
         }
         currentEnd == null && candidate < currentStart -> {
             onStartChange(candidate)
-            onDaySelected(candidate.toDayString(digitMode))
+            onDaySelected(candidate.day)
         }
         currentEnd == null -> {
             onEndChange(candidate)
-            onDaySelected(candidate.toDayString(digitMode))
+            onDaySelected(candidate.day)
         }
         candidate <= currentStart -> {
             onStartChange(candidate)
             onEndChange(null)
-            onDaySelected(candidate.toDayString(digitMode))
+            onDaySelected(candidate.day)
         }
         else -> {
             onEndChange(candidate)
-            onDaySelected(candidate.toDayString(digitMode))
+            onDaySelected(candidate.day)
         }
     }
-}
-
-private fun SoleimaniDate.toDayString(mode: DigitMode): String = when (mode) {
-    DigitMode.Persian -> day.toPersianNumber()
-    DigitMode.Latin -> day.toString()
 }
 
 private fun SoleimaniDate.isWithin(start: SoleimaniDate, end: SoleimaniDate): Boolean {
@@ -281,20 +276,21 @@ private fun SoleimaniDate.isWithin(start: SoleimaniDate, end: SoleimaniDate): Bo
 @Preview
 @Composable
 private fun DayOfWeekRangeViewPreview() {
+    val colors = DatePickerDefaults.lightColors()
     DayOfWeekRangeView(
-        mMonth = monthsList[4],
-        mDay = "",
-        mYear = "1403",
+        month = 5,
+        selectedDay = null,
+        year = 1403,
         startDate = null,
         endDate = null,
         weekConfiguration = WeekConfiguration(),
         digitMode = DigitMode.Persian,
-        weekendLabelColor = Color(0xFFEF4444),
-        highlightColor = Color(0xFF3B82F6),
+        weekendLabelColor = colors.weekendLabelColor,
+        highlightColor = colors.todayOutline,
         eventIndicator = { date ->
             if (date.day == 1) CalendarEvent(Color(0xFF10B981), "شروع ماه") else null
         },
-        setDay = {},
+        onDaySelected = {},
         setStartDate = {},
         setEndDate = {},
     )

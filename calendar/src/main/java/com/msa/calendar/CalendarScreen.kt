@@ -31,16 +31,12 @@ import com.msa.calendar.ui.view.MonthView
 import com.msa.calendar.ui.view.YearsView
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.PickerType
-import com.msa.calendar.utils.toPersianNumber
-import com.msa.calendar.utils.monthsList
-
 import com.msa.calendar.ui.DatePickerConfig
 import com.msa.calendar.ui.DatePickerStrings
 import com.msa.calendar.ui.DigitMode
 import com.msa.calendar.utils.FormatHelper
 import com.msa.calendar.utils.SoleimaniDate
 import com.msa.calendar.utils.addLeadingZero
-import com.msa.calendar.utils.toIntSafely
 import com.msa.calendar.ui.DatePickerQuickAction
 
 import androidx.compose.material3.ButtonDefaults
@@ -52,6 +48,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.runtime.LaunchedEffect
+import com.msa.calendar.utils.adjustDayIfOutOfBounds
 
 @Composable
 fun CalendarScreen(
@@ -91,17 +89,24 @@ fun CalendarScreen(
 
     var pickerType: PickerType by remember { mutableStateOf(PickerType.Day) }
 
-    var mMonth by remember {
-        mutableStateOf(monthsList.getOrElse(baseDate.month - 1) { monthsList.first() })
+    var selectedYear by remember { mutableStateOf(baseDate.year) }
+    var selectedMonth by remember { mutableStateOf(baseDate.month.coerceIn(1, 12)) }
+    var selectedDay by remember { mutableStateOf<Int?>(baseDate.day) }
+
+    LaunchedEffect(selectedMonth, selectedYear) {
+        adjustDayIfOutOfBounds(
+            dayValue = selectedDay,
+            month = selectedMonth,
+            year = selectedYear,
+        )?.let { coerced ->
+            selectedDay = coerced
+        }
     }
-    var mYear by remember { mutableStateOf(baseDate.year.toDigitString(config.digitMode)) }
-    var mDay by remember { mutableStateOf(baseDate.day.toDigitString(config.digitMode)) }
 
     fun updateSelectionFromDate(target: SoleimaniDate) {
-        val monthName = monthsList.getOrElse(target.month - 1) { monthsList.first() }
-        mMonth = monthName
-        mYear = target.year.toDigitString(config.digitMode)
-        mDay = target.day.toDigitString(config.digitMode)
+        selectedYear = target.year
+        selectedMonth = target.month.coerceIn(1, 12)
+        selectedDay = target.day
         pickerType = PickerType.Day
     }
 
@@ -135,56 +140,72 @@ fun CalendarScreen(
                         .animateContentSize()
                 ) {
 
-                    val highlightToday = remember(config.highlightToday, mMonth, mYear, constraints) {
-                        if (!config.highlightToday) return@remember null
-                        if (!constraints.isDateSelectable(todaySoleimani)) return@remember null
-                        val monthIndex = monthsList.indexOf(mMonth)
-                        val yearValue = mYear.toIntSafely()
-                        if (monthIndex >= 0 && yearValue != null &&
-                            todaySoleimani.month == monthIndex + 1 &&
-                            todaySoleimani.year == yearValue
-                        ) {
-                            todaySoleimani
-                        } else null
+                    val monthLabel = remember(selectedMonth, config.monthFormatter, config.digitMode) {
+                        config.monthFormatter.format(selectedMonth, config.digitMode)
                     }
 
-                    val monthIndex = remember(mMonth) { monthsList.indexOf(mMonth) }
-                    val selectedDate = remember(mYear, mDay, monthIndex) {
-                        val yearValue = mYear.toIntSafely()
-                        val monthValue = if (monthIndex >= 0) monthIndex + 1 else null
-                        val dayValue = mDay.toIntSafely()
-                        if (yearValue != null && monthValue != null && dayValue != null) {
-                            runCatching { SoleimaniDate(yearValue, monthValue, dayValue) }.getOrNull()
-                        } else null
+                    val yearLabel = remember(selectedYear, config.yearFormatter, config.digitMode) {
+                        config.yearFormatter.format(selectedYear, config.digitMode)
                     }
 
-                    val headerSubtitle = remember(selectedDate, mMonth, config.digitMode, strings) {
+                    val selectedDate = remember(selectedYear, selectedMonth, selectedDay) {
+                        selectedDay?.let { day ->
+                            runCatching { SoleimaniDate(selectedYear, selectedMonth, day) }.getOrNull()
+                        }
+                    }
+                    val headerSubtitle = remember(selectedDate, monthLabel, yearLabel, config.digitMode, strings) {
                         selectedDate?.let { date ->
                             val dayText = when (config.digitMode) {
                                 DigitMode.Persian -> FormatHelper.toPersianNumber(addLeadingZero(date.day))
                                 DigitMode.Latin -> addLeadingZero(date.day)
                             }
-                            val yearText = when (config.digitMode) {
-                                DigitMode.Persian -> date.year.toPersianNumber()
-                                DigitMode.Latin -> date.year.toString()
-                            }
-                            "$dayText $mMonth $yearText"
+                            "$dayText $monthLabel $yearLabel"
                         } ?: strings.title
                     }
-
+                    val highlightToday = remember(config.highlightToday, selectedMonth, selectedYear, constraints) {
+                        if (!config.highlightToday) return@remember null
+                        if (!constraints.isDateSelectable(todaySoleimani)) return@remember null
+                        if (todaySoleimani.month == selectedMonth && todaySoleimani.year == selectedYear) {
+                            todaySoleimani
+                        } else null
+                    }
                     val isSelectionEnabled = remember(selectedDate, constraints) {
                         selectedDate?.let(constraints::isDateSelectable) == true
                     }
-
+                    val effectiveYearRange = remember(config.yearRange, selectedYear, todayYear, constraints) {
+                        val candidates = mutableListOf(
+                            config.yearRange.first,
+                            config.yearRange.last,
+                            selectedYear,
+                            todayYear,
+                        )
+                        constraints.minDate?.let { candidates += it.year }
+                        constraints.maxDate?.let { candidates += it.year }
+                        val minYear = candidates.minOrNull() ?: selectedYear
+                        val maxYear = candidates.maxOrNull() ?: selectedYear
+                        minYear..maxYear
+                    }
                     CalendarView(
-                        mMonth = mMonth,
-                        mDay = mDay,
-                        mYear = mYear,
+                        monthLabel = monthLabel,
+                        yearLabel = yearLabel,
                         pickerTypeChang = { pickerType = it },
                         pickerType = pickerType,
-                        setDay = { mDay = it },
-                        setMonth = { mMonth = it },
-                        setYear = { mYear = it },
+                        onPreviousMonth = {
+                            if (selectedMonth == 1) {
+                                selectedMonth = 12
+                                selectedYear -= 1
+                            } else {
+                                selectedMonth -= 1
+                            }
+                        },
+                        onNextMonth = {
+                            if (selectedMonth == 12) {
+                                selectedMonth = 1
+                                selectedYear += 1
+                            } else {
+                                selectedMonth += 1
+                            }
+                        },
                         title = strings.title,
                         subtitle = headerSubtitle,
                         strings = strings,
@@ -198,7 +219,7 @@ fun CalendarScreen(
                                 }
 
                                 is DatePickerQuickAction.ClearSelection -> {
-                                    mDay = ""
+                                    selectedDay = null
                                     pickerType = PickerType.Day
                                 }
 
@@ -214,37 +235,41 @@ fun CalendarScreen(
                     Crossfade(targetState = pickerType, label = "picker") { type ->
                         when (type) {
                             PickerType.Day -> DayOfWeekView(
-                                mMonth = mMonth,
-                                mDay = mDay,
-                                mYear = mYear,
+                                month = selectedMonth,
+                                selectedDay = selectedDay,
+                                year = selectedYear,
                                 highlightedDate = highlightToday,
                                 highlightColor = colors.todayOutline,
                                 weekConfiguration = weekConfiguration,
                                 digitMode = config.digitMode,
                                 weekendLabelColor = colors.weekendLabelColor,
                                 eventIndicator = config.eventIndicator,
-                                setDay = { mDay = it },
+                                onDaySelected = { day -> selectedDay = day },
                                 isDateEnabled = { constraints.isDateSelectable(it) },
                                 changeSelectedPart = {}
                             )
 
                             PickerType.Year -> YearsView(
-                                mYear = mYear,
+                                selectedYear = selectedYear,
                                 digitMode = config.digitMode,
-                                onYearClick = { selected ->
-                                    mYear = selected
+                                yearFormatter = config.yearFormatter,
+                                yearRange = effectiveYearRange,
+                                colors = colors,
+                                onYearClick = { yearValue ->
+                                    selectedYear = yearValue
                                 },
                             )
 
                             PickerType.Month -> MonthView(
-                                mMonth = mMonth,
-                                selectedYear = mYear,
+                                selectedMonth = selectedMonth,
+                                displayedYear = selectedYear,
                                 digitMode = config.digitMode,
-                                onMonthClick = { selectedMonth ->
-                                    mMonth = selectedMonth
+                                monthFormatter = config.monthFormatter,
+                                colors = colors,
+                                onMonthSelected = { monthValue ->
+                                    selectedMonth = monthValue
                                     pickerType = PickerType.Day
                                 },
-                                setMonth = { _ -> }
                             )
 
                         }
@@ -320,9 +345,4 @@ fun CalendarScreenPreview() {
             highlightToday = true,
         )
     )
-}
-
-private fun Int.toDigitString(mode: DigitMode): String = when (mode) {
-    DigitMode.Persian -> toPersianNumber()
-    DigitMode.Latin -> toString()
 }
