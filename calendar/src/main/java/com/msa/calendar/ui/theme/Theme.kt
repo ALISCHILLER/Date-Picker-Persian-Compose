@@ -25,8 +25,8 @@ private val DarkColorScheme = darkColorScheme(
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
-    onBackground = CalendarColorTokens.textMuted,
-    onSurface = CalendarColorTokens.textMuted,
+    onBackground = Color.White.copy(alpha = 0.92f),
+    onSurface = Color.White.copy(alpha = 0.92f),
 )
 
 private val LightColorScheme = lightColorScheme(
