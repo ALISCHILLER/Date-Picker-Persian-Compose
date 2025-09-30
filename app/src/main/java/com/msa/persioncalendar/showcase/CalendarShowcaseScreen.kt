@@ -67,18 +67,23 @@ fun CalendarShowcaseScreen(
     state: CalendarShowcaseState,
     uiState: CalendarShowcaseUiState,
 ) {
+
+    val colorScheme = MaterialTheme.colorScheme
+    val backgroundBrush = remember(colorScheme) {
+        Brush.verticalGradient(
+            colors = listOf(
+                colorScheme.primary.copy(alpha = 0.12f),
+                colorScheme.surface,
+                colorScheme.background,
+            ),
+        )
+    }
+
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                        MaterialTheme.colorScheme.surface,
-                        MaterialTheme.colorScheme.background,
-                    )
-                )
-            )
+            .background(brush = backgroundBrush)
     ) {
         ShowcaseDialogs(
             state = state,
@@ -86,75 +91,16 @@ fun CalendarShowcaseScreen(
         )
 
         Scaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = { Text(text = stringResource(R.string.showcase_appbar_title)) },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                        actionIconContentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
-                )
-            },
+            topBar = { ShowcaseTopAppBar() },
             containerColor = Color.Transparent,
         ) { innerPadding ->
-            Column(
+            ShowcaseContent(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top,
-            ) {
-                IntroCard()
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                SectionCard(
-                    titleRes = R.string.showcase_section_experience_title,
-                    subtitleRes = R.string.showcase_section_experience_subtitle,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    PreferencesSection(
-                        state = state,
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                SectionCard(
-                    titleRes = R.string.showcase_section_quick_title,
-                    subtitleRes = R.string.showcase_section_quick_subtitle,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    QuickActionsSection(
-                        state = state,
-                        today = uiState.today,
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                SectionCard(
-                    titleRes = R.string.showcase_section_report_title,
-                    subtitleRes = R.string.showcase_section_report_subtitle,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    SelectionSummaryCard(
-                        state = state,
-                        uiState = uiState,
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                HighlightLegend(
-                    formatting = uiState.formatting,
-                    eventIndicator = uiState.dialogConfig.eventIndicator,
-                )
-            }
+                    .padding(innerPadding),
+                state = state,
+                uiState = uiState,
+            )
         }
     }
 }
@@ -164,11 +110,10 @@ private fun ShowcaseDialogs(
     state: CalendarShowcaseState,
     dialogConfig: DatePickerConfig,
 ) {
-    val dismissPickers: (Boolean) -> Unit = remember(state) { { state.dismissPickers() } }
 
     if (state.showSinglePicker) {
         CalendarScreen(
-            onDismiss = dismissPickers,
+            onDismiss = { state.dismissPickers() },
             onConfirm = { _ -> },
             config = dialogConfig,
             onDateSelected = state::onSingleDateSelected,
@@ -177,13 +122,90 @@ private fun ShowcaseDialogs(
 
     if (state.showRangePicker) {
         RangeCalendarScreen(
-            onDismiss = dismissPickers,
+            onDismiss = { state.dismissPickers() },
             setDate = { _ -> },
             config = dialogConfig,
             onRangeSelected = state::onRangeSelected,
         )
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ShowcaseTopAppBar() {
+    CenterAlignedTopAppBar(
+        title = { Text(text = stringResource(R.string.showcase_appbar_title)) },
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = Color.Transparent,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurface,
+        ),
+    )
+}
+
+@Composable
+private fun ShowcaseContent(
+    modifier: Modifier,
+    state: CalendarShowcaseState,
+    uiState: CalendarShowcaseUiState,
+) {
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = modifier
+            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .verticalScroll(scrollState),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top,
+    ) {
+        IntroCard()
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        SectionCard(
+            titleRes = R.string.showcase_section_experience_title,
+            subtitleRes = R.string.showcase_section_experience_subtitle,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            PreferencesSection(state = state)
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        SectionCard(
+            titleRes = R.string.showcase_section_quick_title,
+            subtitleRes = R.string.showcase_section_quick_subtitle,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            QuickActionsSection(
+                state = state,
+                today = uiState.today,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        SectionCard(
+            titleRes = R.string.showcase_section_report_title,
+            subtitleRes = R.string.showcase_section_report_subtitle,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            SelectionSummaryCard(
+                state = state,
+                uiState = uiState,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        HighlightLegend(
+            formatting = uiState.formatting,
+            eventIndicator = uiState.dialogConfig.eventIndicator,
+        )
+    }
+}
+
 
 @Composable
 private fun IntroCard() {

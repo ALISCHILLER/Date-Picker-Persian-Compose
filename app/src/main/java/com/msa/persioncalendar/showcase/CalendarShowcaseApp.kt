@@ -39,6 +39,8 @@ import com.msa.calendar.utils.toSoleimaniDate
 import com.msa.persioncalendar.R
 import java.time.DayOfWeek
 import java.util.LinkedHashSet
+import androidx.compose.material3.ColorScheme
+import com.msa.calendar.ui.DatePickerColors
 
 @Composable
 fun CalendarShowcaseApp(modifier: Modifier = Modifier) {
@@ -179,8 +181,66 @@ fun rememberCalendarShowcaseUiState(
 
     val isDarkTheme = isSystemInDarkTheme()
     val colorScheme = MaterialTheme.colorScheme
+    val weekConfiguration = rememberWeekConfiguration(state)
+    val constraints = rememberConstraints(state, weekConfiguration)
+    val upcomingMilestone = rememberUpcomingMilestone(state.today)
 
-    val weekConfiguration = remember(state.localeConfiguration, state.useInternationalWeek) {
+    val milestoneLabel = stringResource(R.string.showcase_quick_action_next_milestone)
+    val quickActions = rememberQuickActions(state, milestoneLabel, upcomingMilestone)
+
+    val rangeFormatText = stringResource(R.string.showcase_summary_range_format)
+    val rangeFormatter = rememberRangeFormatter(state, rangeFormatText)
+
+    val eventIndicator = rememberEventIndicator(state)
+    val digitMode = rememberDigitMode(state)
+    val monthFormatter = rememberMonthFormatter(state)
+    val yearFormatter = rememberYearFormatter(state)
+    val strings = rememberDatePickerStrings(state)
+    val colors = rememberDatePickerColors(isDarkTheme, colorScheme)
+    val dialogConfig = rememberDialogConfig(
+        state = state,
+        strings = strings,
+        digitMode = digitMode,
+        constraints = constraints,
+        weekConfiguration = weekConfiguration,
+        quickActions = quickActions,
+        eventIndicator = eventIndicator,
+        monthFormatter = monthFormatter,
+        yearFormatter = yearFormatter,
+        colors = colors,
+    )
+    val formatting = rememberCalendarFormatting(
+        digitMode = digitMode,
+        monthFormatter = monthFormatter,
+        yearFormatter = yearFormatter,
+        rangeFormatter = rangeFormatter,
+    )
+
+    return CalendarShowcaseUiState(
+        today = state.today,
+        upcomingMilestone = upcomingMilestone,
+        constraints = constraints,
+        weekConfiguration = weekConfiguration,
+        dialogConfig = dialogConfig,
+        formatting = formatting,
+    )
+}
+
+
+
+
+@Composable
+fun rememberCalendarShowcaseState(
+    todayProvider: () -> SoleimaniDate = { PersionCalendar().toSoleimaniDate() },
+    localeResolver: () -> CalendarLocaleConfiguration = { CalendarLocalization.inferFromSystem() },
+): CalendarShowcaseState {
+    val today = remember(todayProvider) { todayProvider() }
+    return remember(today) { CalendarShowcaseState(today = today, localeResolver = localeResolver) }
+}
+
+@Composable
+private fun rememberWeekConfiguration(state: CalendarShowcaseState): WeekConfiguration {
+    return remember(state.localeConfiguration, state.useInternationalWeek) {
         if (state.useInternationalWeek) {
             WeekConfiguration(
                 startDay = DayOfWeek.MONDAY,
@@ -192,8 +252,13 @@ fun rememberCalendarShowcaseUiState(
             state.localeConfiguration.toWeekConfiguration()
         }
     }
-
-    val constraints = remember(
+}
+@Composable
+private fun rememberConstraints(
+    state: CalendarShowcaseState,
+    weekConfiguration: WeekConfiguration,
+): DatePickerConstraints {
+    return remember(
         state.limitToNextMonth,
         state.blockFridays,
         state.blockThirteenth,
@@ -210,14 +275,19 @@ fun rememberCalendarShowcaseUiState(
             weekendDays = weekConfiguration.weekendDays,
         )
     }
+}
+@Composable
+private fun rememberUpcomingMilestone(today: SoleimaniDate): SoleimaniDate {
+    return remember(today) { calculateUpcomingMilestone(today) }
+}
 
-    val upcomingMilestone = remember(state.today) {
-        calculateUpcomingMilestone(state.today)
-    }
-
-    val milestoneLabel = stringResource(R.string.showcase_quick_action_next_milestone)
-    val rangeFormatText = stringResource(R.string.showcase_summary_range_format)
-    val quickActions = remember(
+@Composable
+private fun rememberQuickActions(
+    state: CalendarShowcaseState,
+    milestoneLabel: String,
+    upcomingMilestone: SoleimaniDate,
+): List<DatePickerQuickAction> {
+    return remember(
         state.showTodayShortcut,
         state.enableClearAction,
         milestoneLabel,
@@ -230,17 +300,24 @@ fun rememberCalendarShowcaseUiState(
             upcomingMilestone = upcomingMilestone,
         )
     }
-
-    val rangeFormatter = remember(rangeFormatText, state.localeConfiguration) {
+}
+@Composable
+private fun rememberRangeFormatter(
+    state: CalendarShowcaseState,
+    rangeFormatText: String,
+): RangeFormatter {
+    return remember(rangeFormatText, state.localeConfiguration) {
         RangeFormatter { start, end ->
             String.format(state.localeConfiguration.locale, rangeFormatText, start, end)
         }
     }
-
+}
+@Composable
+private fun rememberEventIndicator(state: CalendarShowcaseState): CalendarEventIndicator {
     val eventDisabledLabel = stringResource(R.string.showcase_event_disabled)
     val eventMonthStartLabel = stringResource(R.string.showcase_event_month_start)
     val eventTodayLabel = stringResource(R.string.showcase_event_today)
-    val eventIndicator = remember(
+    return remember(
         state.highlightEvents,
         state.blockThirteenth,
         eventDisabledLabel,
@@ -257,16 +334,21 @@ fun rememberCalendarShowcaseUiState(
             today = state.today,
         )
     }
+}
 
-    val digitMode = remember(state.localeConfiguration, state.useLatinDigits) {
+@Composable
+private fun rememberDigitMode(state: CalendarShowcaseState): DigitMode {
+    return remember(state.localeConfiguration, state.useLatinDigits) {
         if (state.useLatinDigits) {
             DigitMode.Latin
         } else {
             state.localeConfiguration.defaultDigitMode()
         }
     }
-
-    val monthFormatter = remember(state.localeConfiguration, state.useGregorianLabels, state.useLatinDigits) {
+}
+@Composable
+private fun rememberMonthFormatter(state: CalendarShowcaseState): MonthFormatter {
+    return remember(state.localeConfiguration, state.useGregorianLabels, state.useLatinDigits) {
         when {
             state.useGregorianLabels || state.localeConfiguration.calendarSystem == CalendarSystem.Gregorian ->
                 MonthFormatter.Gregorian
@@ -274,20 +356,28 @@ fun rememberCalendarShowcaseUiState(
             else -> MonthFormatter.Persian
         }
     }
-
-    val yearFormatter = remember(state.showGregorianYearHint, state.localeConfiguration) {
+}
+@Composable
+private fun rememberYearFormatter(state: CalendarShowcaseState): YearFormatter {
+    return remember(state.showGregorianYearHint, state.localeConfiguration) {
         if (state.showGregorianYearHint && state.localeConfiguration.calendarSystem == CalendarSystem.Persian) {
             YearFormatter.WithGregorianHint
         } else {
             YearFormatter.Default
         }
     }
+}
+@Composable
+private fun rememberDatePickerStrings(state: CalendarShowcaseState): DatePickerStrings {
+    return remember(state.localeConfiguration) { DatePickerStrings.localized() }
+}
 
-    val strings = remember(state.localeConfiguration) {
-        DatePickerStrings.localized()
-    }
-
-    val colors = remember(isDarkTheme, colorScheme) {
+@Composable
+private fun rememberDatePickerColors(
+    isDarkTheme: Boolean,
+    colorScheme: ColorScheme,
+): DatePickerColors {
+    return remember(isDarkTheme, colorScheme) {
         if (isDarkTheme) {
             DatePickerDefaults.darkColors(
                 gradientStart = colorScheme.primary,
@@ -322,11 +412,24 @@ fun rememberCalendarShowcaseUiState(
             )
         }
     }
-
-    val dialogConfig = remember(
+}
+@Composable
+private fun rememberDialogConfig(
+    state: CalendarShowcaseState,
+    strings: DatePickerStrings,
+    digitMode: DigitMode,
+    constraints: DatePickerConstraints,
+    weekConfiguration: WeekConfiguration,
+    quickActions: List<DatePickerQuickAction>,
+    eventIndicator: CalendarEventIndicator,
+    monthFormatter: MonthFormatter,
+    yearFormatter: YearFormatter,
+    colors: DatePickerColors,
+): DatePickerConfig {
+    return remember(
+        state.showTodayShortcut,
         strings,
         digitMode,
-        state.showTodayShortcut,
         constraints,
         weekConfiguration,
         quickActions,
@@ -348,8 +451,15 @@ fun rememberCalendarShowcaseUiState(
             colors = colors,
         )
     }
-
-    val formatting = remember(digitMode, monthFormatter, yearFormatter, rangeFormatter) {
+}
+@Composable
+private fun rememberCalendarFormatting(
+    digitMode: DigitMode,
+    monthFormatter: MonthFormatter,
+    yearFormatter: YearFormatter,
+    rangeFormatter: RangeFormatter,
+): CalendarFormatting {
+    return remember(digitMode, monthFormatter, yearFormatter, rangeFormatter) {
         CalendarFormatting(
             digitMode = digitMode,
             monthFormatter = monthFormatter,
@@ -357,29 +467,9 @@ fun rememberCalendarShowcaseUiState(
             rangeFormatter = rangeFormatter,
         )
     }
-
-    return CalendarShowcaseUiState(
-        today = state.today,
-
-        upcomingMilestone = upcomingMilestone,
-        constraints = constraints,
-        weekConfiguration = weekConfiguration,
-        dialogConfig = dialogConfig,
-        formatting = formatting,
-    )
 }
 
-
-
-
-@Composable
-fun rememberCalendarShowcaseState(
-    todayProvider: () -> SoleimaniDate = { PersionCalendar().toSoleimaniDate() },
-    localeResolver: () -> CalendarLocaleConfiguration = { CalendarLocalization.inferFromSystem() },
-): CalendarShowcaseState {
-    val today = remember { todayProvider() }
-    return remember { CalendarShowcaseState(today = today, localeResolver = localeResolver) }
-}
+private typealias CalendarEventIndicator = (SoleimaniDate) -> CalendarEvent?
 
 private fun buildConstraints(
     today: SoleimaniDate,
