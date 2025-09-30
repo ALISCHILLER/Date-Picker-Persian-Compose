@@ -36,7 +36,7 @@ data class DatePickerConfig(
     val dateFormatter: DateFormatter = DateFormatter.Default,
     val constraints: DatePickerConstraints = DatePickerConstraints(),
     val monthFormatter: MonthFormatter = MonthFormatter.Persian,
-    val yearFormatter: YearFormatter = YearFormatter.Default,
+    val yearFormatter: YearFormatter = YearFormatter.WithGregorianHint,
     val yearRange: IntRange = 1350..1450,
     val eventIndicator: (SoleimaniDate) -> CalendarEvent? = { null },
 )
