@@ -45,7 +45,8 @@ internal object PersianCalendarEngine {
     fun isLeapYear(year: Int): Boolean {
         val epBase = year - if (year >= 0) 474 else 473
         val epYear = 474 + mod(epBase, 2820)
-        return ((epYear * 682) % 2816) < 682
+        val leapCycleRemainder = mod(epYear * 682 - 110, 2816)
+        return leapCycleRemainder < 682
     }
 
     fun today(zoneId: ZoneId = ZoneId.systemDefault()): Triple<Int, Int, Int> {
