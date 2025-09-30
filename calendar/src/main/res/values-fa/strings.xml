@@ -88,4 +88,5 @@
     <string name="calendar_picker_clear">پاک کردن انتخاب</string>
     <string name="calendar_picker_range_start">تاریخ شروع</string>
     <string name="calendar_picker_range_end">تاریخ پایان</string>
+    <string name="calendar_picker_range_limit">حداکثر طول بازه %1$s روز است.</string>
 </resources>

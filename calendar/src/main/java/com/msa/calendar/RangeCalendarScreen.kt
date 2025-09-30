@@ -294,8 +294,9 @@ fun RangeCalendarScreen(
                             DigitMode.Persian -> FormatHelper.toPersianNumber(constraints.maxRangeLength.toString())
                             DigitMode.Latin -> constraints.maxRangeLength.toString()
                         }
+                        val message = strings.rangeLimitMessage.format(limitText)
                         Text(
-                            text = "حداکثر طول بازه ${limitText} روز است.",
+                            text = message,
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier

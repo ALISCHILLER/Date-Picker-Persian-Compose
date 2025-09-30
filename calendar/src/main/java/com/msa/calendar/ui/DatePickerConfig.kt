@@ -53,6 +53,7 @@ data class DatePickerStrings(
     val clearSelection: String,
     val rangeStartLabel: String,
     val rangeEndLabel: String,
+    val rangeLimitMessage: String,
 ) {
     companion object {
         fun localized(): DatePickerStrings = DatePickerStrings(
@@ -83,6 +84,10 @@ data class DatePickerStrings(
             rangeEndLabel = CalendarResourceResolver.string(
                 R.string.calendar_picker_range_end,
                 fallback = "End date",
+            ),
+            rangeLimitMessage = CalendarResourceResolver.string(
+                R.string.calendar_picker_range_limit,
+                fallback = "Maximum range is %1\$s days.",
             ),
         )
     }

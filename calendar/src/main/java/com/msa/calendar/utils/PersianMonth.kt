@@ -59,7 +59,7 @@ public enum class PersianMonth : TemporalAccessor, TemporalAdjuster {
         return when (this) {
             FARVARDIN, ORDIBEHESHT, KHORDAD, TIR, MORDAD, SHAHRIVAR, MEHR -> 31
             ABAN, AZAR, DEY, BAHMAN -> 30
-            ESFAND -> if (leapYear) 29 else 28
+            ESFAND -> if (leapYear) 30 else 29
         }
     }
     override fun adjustInto(temporal: Temporal): Temporal {

@@ -88,4 +88,5 @@
     <string name="calendar_picker_clear">Clear selection</string>
     <string name="calendar_picker_range_start">Start date</string>
     <string name="calendar_picker_range_end">End date</string>
+    <string name="calendar_picker_range_limit">Maximum range is %1$s days.</string>
 </resources>
