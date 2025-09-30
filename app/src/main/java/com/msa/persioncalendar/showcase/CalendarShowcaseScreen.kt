@@ -53,12 +53,7 @@ import com.msa.calendar.CalendarScreen
 import com.msa.calendar.RangeCalendarScreen
 import com.msa.calendar.ui.CalendarEvent
 import com.msa.calendar.ui.DatePickerConfig
-import com.msa.calendar.ui.DatePickerConstraints
-import com.msa.calendar.ui.DatePickerDefaults
 import com.msa.calendar.ui.DigitMode
-import com.msa.calendar.ui.MonthFormatter
-import com.msa.calendar.ui.WeekConfiguration
-import com.msa.calendar.ui.YearFormatter
 import com.msa.calendar.ui.theme.PersionCalendarTheme
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.SoleimaniDate
@@ -70,16 +65,7 @@ import com.msa.persioncalendar.R
 fun CalendarShowcaseScreen(
     modifier: Modifier = Modifier,
     state: CalendarShowcaseState,
-    dialogConfig: DatePickerConfig,
-    today: SoleimaniDate,
-    constraintConfig: DatePickerConstraints,
-    digitMode: DigitMode,
-    monthFormatter: MonthFormatter,
-    yearFormatter: YearFormatter,
-    weekConfiguration: WeekConfiguration,
-    upcomingMilestone: SoleimaniDate,
-    eventIndicator: (SoleimaniDate) -> CalendarEvent?,
-    rangeFormatter: RangeFormatter,
+    uiState: CalendarShowcaseUiState,
 ) {
     Box(
         modifier = modifier
@@ -96,7 +82,7 @@ fun CalendarShowcaseScreen(
     ) {
         ShowcaseDialogs(
             state = state,
-            dialogConfig = dialogConfig,
+            dialogConfig = uiState.dialogConfig,
         )
 
         Scaffold(
@@ -145,7 +131,7 @@ fun CalendarShowcaseScreen(
                 ) {
                     QuickActionsSection(
                         state = state,
-                        today = today,
+                        today = uiState.today,
                     )
                 }
 
@@ -158,25 +144,15 @@ fun CalendarShowcaseScreen(
                 ) {
                     SelectionSummaryCard(
                         state = state,
-                        constraintConfig = constraintConfig,
-                        limitToNextMonth = state.limitToNextMonth,
-                        blockFridays = state.blockFridays,
-                        blockThirteenth = state.blockThirteenth,
-                        limitRangeLength = state.limitRangeLength,
-                        digitMode = digitMode,
-                        monthFormatter = monthFormatter,
-                        yearFormatter = yearFormatter,
-                        weekConfiguration = weekConfiguration,
-                        upcomingMilestone = upcomingMilestone,
-                        rangeFormatter = rangeFormatter,
+                        uiState = uiState,
                     )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 HighlightLegend(
-                    digitMode = digitMode,
-                    eventIndicator = eventIndicator,
+                    formatting = uiState.formatting,
+                    eventIndicator = uiState.dialogConfig.eventIndicator,
                 )
             }
         }
@@ -188,10 +164,12 @@ private fun ShowcaseDialogs(
     state: CalendarShowcaseState,
     dialogConfig: DatePickerConfig,
 ) {
+    val dismissPickers: (Boolean) -> Unit = remember(state) { { state.dismissPickers() } }
+
     if (state.showSinglePicker) {
         CalendarScreen(
-            onDismiss = state::dismissPickers,
-            onConfirm = state::dismissPickers,
+            onDismiss = dismissPickers,
+            onConfirm = { _ -> },
             config = dialogConfig,
             onDateSelected = state::onSingleDateSelected,
         )
@@ -199,7 +177,7 @@ private fun ShowcaseDialogs(
 
     if (state.showRangePicker) {
         RangeCalendarScreen(
-            onDismiss = state::dismissPickers,
+            onDismiss = dismissPickers,
             setDate = { _ -> },
             config = dialogConfig,
             onRangeSelected = state::onRangeSelected,
@@ -444,17 +422,7 @@ private fun QuickActionsSection(
 @Composable
 private fun SelectionSummaryCard(
     state: CalendarShowcaseState,
-    constraintConfig: DatePickerConstraints,
-    limitToNextMonth: Boolean,
-    blockFridays: Boolean,
-    blockThirteenth: Boolean,
-    limitRangeLength: Boolean,
-    digitMode: DigitMode,
-    monthFormatter: MonthFormatter,
-    yearFormatter: YearFormatter,
-    weekConfiguration: WeekConfiguration,
-    upcomingMilestone: SoleimaniDate,
-    rangeFormatter: RangeFormatter,
+    uiState: CalendarShowcaseUiState,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -464,20 +432,27 @@ private fun SelectionSummaryCard(
         val noSingleValue = stringResource(R.string.showcase_summary_none_single)
         val noRangeValue = stringResource(R.string.showcase_summary_none_range)
         val milestoneTitle = stringResource(R.string.showcase_summary_milestone_title)
+        val formatting = uiState.formatting
+        val digitMode = formatting.digitMode
+        val monthFormatter = formatting.monthFormatter
+        val yearFormatter = formatting.yearFormatter
+
 
         SelectionSummaryRow(
             title = singleTitle,
-            value = state.selectedSingleDate?.toDisplayString(digitMode, monthFormatter, yearFormatter) ?: noSingleValue,
+            value = state.selectedSingleDate
+                ?.toDisplayString(digitMode, monthFormatter, yearFormatter)
+                ?: noSingleValue,
         )
         SelectionSummaryRow(
             title = rangeTitle,
             value = state.selectedRange
-                ?.toDisplayString(digitMode, monthFormatter, yearFormatter, rangeFormatter)
+                ?.toDisplayString(digitMode, monthFormatter, yearFormatter, formatting.rangeFormatter)
                 ?: noRangeValue,
         )
         SelectionSummaryRow(
             title = milestoneTitle,
-            value = upcomingMilestone.toDisplayString(digitMode, monthFormatter, yearFormatter),
+            value = uiState.upcomingMilestone.toDisplayString(digitMode, monthFormatter, yearFormatter),
         )
 
         AnimatedVisibility(
@@ -497,15 +472,11 @@ private fun SelectionSummaryCard(
         Divider()
 
         ConstraintSummary(
-            constraints = constraintConfig,
-            limitToNextMonth = limitToNextMonth,
-            blockFridays = blockFridays,
-            blockThirteenth = blockThirteenth,
-            limitRangeLength = limitRangeLength,
-            digitMode = digitMode,
-            monthFormatter = monthFormatter,
-            yearFormatter = yearFormatter,
-            weekConfiguration = weekConfiguration,
+            uiState = uiState,
+            limitToNextMonth = state.limitToNextMonth,
+            blockFridays = state.blockFridays,
+            blockThirteenth = state.blockThirteenth,
+            limitRangeLength = state.limitRangeLength,
         )
     }
 }
@@ -542,16 +513,18 @@ private fun SelectionSummaryRow(
 
 @Composable
 private fun ConstraintSummary(
-    constraints: DatePickerConstraints,
+    uiState: CalendarShowcaseUiState,
     limitToNextMonth: Boolean,
     blockFridays: Boolean,
     blockThirteenth: Boolean,
     limitRangeLength: Boolean,
-    digitMode: DigitMode,
-    monthFormatter: MonthFormatter,
-    yearFormatter: YearFormatter,
-    weekConfiguration: WeekConfiguration,
 ) {
+    val constraints = uiState.constraints
+    val formatting = uiState.formatting
+    val digitMode = formatting.digitMode
+    val monthFormatter = formatting.monthFormatter
+    val yearFormatter = formatting.yearFormatter
+    val weekConfiguration = uiState.weekConfiguration
     val min = constraints.minDate
     val max = constraints.maxDate
     val disabled = constraints.disabledDates
@@ -725,10 +698,11 @@ private fun SectionCard(
 
 @Composable
 private fun HighlightLegend(
-    digitMode: DigitMode,
+    formatting: CalendarFormatting,
     eventIndicator: (SoleimaniDate) -> CalendarEvent?,
 ) {
     val caption = stringResource(R.string.showcase_legend_title)
+    val digitMode = formatting.digitMode
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -791,20 +765,11 @@ private fun EventLegendRow(event: CalendarEvent) {
 @Composable
 private fun CalendarShowcasePreview() {
     val state = rememberCalendarShowcaseState(todayProvider = { PersionCalendar().toSoleimaniDate() })
-    val config = DatePickerConfig(colors = DatePickerDefaults.colors())
     PersionCalendarTheme {
+        val uiState = rememberCalendarShowcaseUiState(state)
         CalendarShowcaseScreen(
             state = state,
-            dialogConfig = config,
-            today = state.today,
-            constraintConfig = DatePickerConstraints(),
-            digitMode = DigitMode.Persian,
-            monthFormatter = MonthFormatter.Persian,
-            yearFormatter = YearFormatter.Default,
-            weekConfiguration = WeekConfiguration(),
-            upcomingMilestone = state.today,
-            eventIndicator = { null },
-            rangeFormatter = RangeFormatter { a, b -> "$a → $b" },
+            uiState = uiState,
         )
     }
 }

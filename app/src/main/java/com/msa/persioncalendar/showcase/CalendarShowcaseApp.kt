@@ -43,195 +43,36 @@ import java.util.LinkedHashSet
 @Composable
 fun CalendarShowcaseApp(modifier: Modifier = Modifier) {
     val state = rememberCalendarShowcaseState()
-    val isDarkTheme = isSystemInDarkTheme()
-    val colorScheme = MaterialTheme.colorScheme
 
-    val weekConfiguration = remember(state.localeConfiguration, state.useInternationalWeek) {
-        if (state.useInternationalWeek) {
-            WeekConfiguration(
-                startDay = DayOfWeek.MONDAY,
-                weekendDays = setOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY),
-                dayLabelFormatter = WeekdayFormatter.LatinShort,
-                layoutDirection = LayoutDirection.Ltr,
-            )
-        } else {
-            state.localeConfiguration.toWeekConfiguration()
-        }
-    }
 
-    val constraintConfig = remember(
-        state.limitToNextMonth,
-        state.blockFridays,
-        state.blockThirteenth,
-        state.limitRangeLength,
-        state.today,
-        weekConfiguration,
-    ) {
-        buildConstraints(
-            today = state.today,
-            limitToNextMonth = state.limitToNextMonth,
-            blockFridays = state.blockFridays,
-            blockThirteenth = state.blockThirteenth,
-            limitRangeLength = state.limitRangeLength,
-            weekendDays = weekConfiguration.weekendDays,
-        )
-    }
-
-    val upcomingMilestone = remember(state.today) {
-        calculateUpcomingMilestone(state.today)
-    }
-
-    val milestoneLabel = stringResource(R.string.showcase_quick_action_next_milestone)
-    val rangeFormatText = stringResource(R.string.showcase_summary_range_format)
-    val quickActions = remember(
-        state.showTodayShortcut,
-        state.enableClearAction,
-        milestoneLabel,
-        upcomingMilestone,
-    ) {
-        buildQuickActions(
-            showTodayShortcut = state.showTodayShortcut,
-            enableClearAction = state.enableClearAction,
-            milestoneLabel = milestoneLabel,
-            upcomingMilestone = upcomingMilestone,
-        )
-    }
-
-    val rangeFormatter = remember(rangeFormatText, state.localeConfiguration) {
-        RangeFormatter { start, end ->
-            String.format(state.localeConfiguration.locale, rangeFormatText, start, end)
-        }
-    }
-
-    val eventDisabledLabel = stringResource(R.string.showcase_event_disabled)
-    val eventMonthStartLabel = stringResource(R.string.showcase_event_month_start)
-    val eventTodayLabel = stringResource(R.string.showcase_event_today)
-    val eventIndicator = remember(
-        state.highlightEvents,
-        state.blockThirteenth,
-        eventDisabledLabel,
-        eventMonthStartLabel,
-        eventTodayLabel,
-        state.today,
-    ) {
-        buildEventIndicator(
-            highlightEvents = state.highlightEvents,
-            blockThirteenth = state.blockThirteenth,
-            disabledLabel = eventDisabledLabel,
-            monthStartLabel = eventMonthStartLabel,
-            todayLabel = eventTodayLabel,
-            today = state.today,
-        )
-    }
-
-    val digitMode = remember(state.localeConfiguration, state.useLatinDigits) {
-        if (state.useLatinDigits) {
-            DigitMode.Latin
-        } else {
-            state.localeConfiguration.defaultDigitMode()
-        }
-    }
-
-    val monthFormatter = remember(state.localeConfiguration, state.useGregorianLabels, state.useLatinDigits) {
-        when {
-            state.useGregorianLabels || state.localeConfiguration.calendarSystem == CalendarSystem.Gregorian ->
-                MonthFormatter.Gregorian
-            state.useLatinDigits -> MonthFormatter.PersianWithLatinTransliteration
-            else -> MonthFormatter.Persian
-        }
-    }
-
-    val yearFormatter = remember(state.showGregorianYearHint, state.localeConfiguration) {
-        if (state.showGregorianYearHint && state.localeConfiguration.calendarSystem == CalendarSystem.Persian) {
-            YearFormatter.WithGregorianHint
-        } else {
-            YearFormatter.Default
-        }
-    }
-
-    val strings = remember(state.localeConfiguration) {
-        DatePickerStrings.localized()
-    }
-
-    val datePickerColors = remember(isDarkTheme, colorScheme) {
-        if (isDarkTheme) {
-            DatePickerDefaults.darkColors(
-                gradientStart = colorScheme.primary,
-                gradientEnd = colorScheme.tertiary,
-                containerColor = colorScheme.surface,
-                titleTextColor = colorScheme.onPrimary,
-                subtitleTextColor = colorScheme.onPrimary.copy(alpha = 0.88f),
-                controlIconColor = colorScheme.onPrimary.copy(alpha = 0.85f),
-                todayButtonBackground = colorScheme.primary.copy(alpha = 0.35f),
-                todayButtonContent = colorScheme.onPrimary,
-                confirmButtonBackground = colorScheme.primary,
-                confirmButtonContent = colorScheme.onPrimary,
-                cancelButtonContent = colorScheme.onPrimary.copy(alpha = 0.9f),
-                todayOutline = colorScheme.primary.copy(alpha = 0.85f),
-                weekendLabelColor = colorScheme.tertiary.copy(alpha = 0.9f),
-            )
-        } else {
-            DatePickerDefaults.lightColors(
-                gradientStart = colorScheme.primary,
-                gradientEnd = colorScheme.tertiary,
-                containerColor = colorScheme.surface,
-                titleTextColor = colorScheme.onPrimary,
-                subtitleTextColor = colorScheme.onPrimary.copy(alpha = 0.88f),
-                controlIconColor = colorScheme.onPrimary.copy(alpha = 0.8f),
-                todayButtonBackground = colorScheme.primary.copy(alpha = 0.22f),
-                todayButtonContent = colorScheme.onPrimary,
-                confirmButtonBackground = colorScheme.primary,
-                confirmButtonContent = colorScheme.onPrimary,
-                cancelButtonContent = colorScheme.primary.copy(alpha = 0.85f),
-                todayOutline = colorScheme.primary.copy(alpha = 0.9f),
-                weekendLabelColor = colorScheme.tertiary,
-            )
-        }
-    }
-
-    val dialogConfig = remember(
-        strings,
-        digitMode,
-        state.showTodayShortcut,
-        constraintConfig,
-        weekConfiguration,
-        quickActions,
-        eventIndicator,
-        monthFormatter,
-        yearFormatter,
-        datePickerColors,
-    ) {
-        DatePickerConfig(
-            strings = strings,
-            digitMode = digitMode,
-            showTodayAction = state.showTodayShortcut,
-            constraints = constraintConfig,
-            weekConfiguration = weekConfiguration,
-            quickActions = quickActions,
-            eventIndicator = eventIndicator,
-            monthFormatter = monthFormatter,
-            yearFormatter = yearFormatter,
-            colors = datePickerColors,
-        )
-    }
+    val uiState = rememberCalendarShowcaseUiState(state = state)
 
     CalendarShowcaseScreen(
         modifier = modifier,
         state = state,
-        dialogConfig = dialogConfig,
-        today = state.today,
-        constraintConfig = constraintConfig,
-        digitMode = digitMode,
-        monthFormatter = monthFormatter,
-        yearFormatter = yearFormatter,
-        weekConfiguration = weekConfiguration,
-        upcomingMilestone = upcomingMilestone,
-        eventIndicator = eventIndicator,
-        rangeFormatter = rangeFormatter,
+        uiState = uiState,
     )
 }
 
 enum class LocaleOption { System, Persian, English }
+
+@Stable
+data class CalendarFormatting(
+    val digitMode: DigitMode,
+    val monthFormatter: MonthFormatter,
+    val yearFormatter: YearFormatter,
+    val rangeFormatter: RangeFormatter,
+)
+
+@Stable
+data class CalendarShowcaseUiState(
+    val today: SoleimaniDate,
+    val upcomingMilestone: SoleimaniDate,
+    val constraints: DatePickerConstraints,
+    val weekConfiguration: WeekConfiguration,
+    val dialogConfig: DatePickerConfig,
+    val formatting: CalendarFormatting,
+)
 
 @Stable
 class CalendarShowcaseState internal constructor(
@@ -331,6 +172,207 @@ class CalendarShowcaseState internal constructor(
 }
 
 @Composable
+fun rememberCalendarShowcaseUiState(
+    state: CalendarShowcaseState,
+): CalendarShowcaseUiState {
+
+
+    val isDarkTheme = isSystemInDarkTheme()
+    val colorScheme = MaterialTheme.colorScheme
+
+    val weekConfiguration = remember(state.localeConfiguration, state.useInternationalWeek) {
+        if (state.useInternationalWeek) {
+            WeekConfiguration(
+                startDay = DayOfWeek.MONDAY,
+                weekendDays = setOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY),
+                dayLabelFormatter = WeekdayFormatter.LatinShort,
+                layoutDirection = LayoutDirection.Ltr,
+            )
+        } else {
+            state.localeConfiguration.toWeekConfiguration()
+        }
+    }
+
+    val constraints = remember(
+        state.limitToNextMonth,
+        state.blockFridays,
+        state.blockThirteenth,
+        state.limitRangeLength,
+        state.today,
+        weekConfiguration,
+    ) {
+        buildConstraints(
+            today = state.today,
+            limitToNextMonth = state.limitToNextMonth,
+            blockFridays = state.blockFridays,
+            blockThirteenth = state.blockThirteenth,
+            limitRangeLength = state.limitRangeLength,
+            weekendDays = weekConfiguration.weekendDays,
+        )
+    }
+
+    val upcomingMilestone = remember(state.today) {
+        calculateUpcomingMilestone(state.today)
+    }
+
+    val milestoneLabel = stringResource(R.string.showcase_quick_action_next_milestone)
+    val rangeFormatText = stringResource(R.string.showcase_summary_range_format)
+    val quickActions = remember(
+        state.showTodayShortcut,
+        state.enableClearAction,
+        milestoneLabel,
+        upcomingMilestone,
+    ) {
+        buildQuickActions(
+            showTodayShortcut = state.showTodayShortcut,
+            enableClearAction = state.enableClearAction,
+            milestoneLabel = milestoneLabel,
+            upcomingMilestone = upcomingMilestone,
+        )
+    }
+
+    val rangeFormatter = remember(rangeFormatText, state.localeConfiguration) {
+        RangeFormatter { start, end ->
+            String.format(state.localeConfiguration.locale, rangeFormatText, start, end)
+        }
+    }
+
+    val eventDisabledLabel = stringResource(R.string.showcase_event_disabled)
+    val eventMonthStartLabel = stringResource(R.string.showcase_event_month_start)
+    val eventTodayLabel = stringResource(R.string.showcase_event_today)
+    val eventIndicator = remember(
+        state.highlightEvents,
+        state.blockThirteenth,
+        eventDisabledLabel,
+        eventMonthStartLabel,
+        eventTodayLabel,
+        state.today,
+    ) {
+        buildEventIndicator(
+            highlightEvents = state.highlightEvents,
+            blockThirteenth = state.blockThirteenth,
+            disabledLabel = eventDisabledLabel,
+            monthStartLabel = eventMonthStartLabel,
+            todayLabel = eventTodayLabel,
+            today = state.today,
+        )
+    }
+
+    val digitMode = remember(state.localeConfiguration, state.useLatinDigits) {
+        if (state.useLatinDigits) {
+            DigitMode.Latin
+        } else {
+            state.localeConfiguration.defaultDigitMode()
+        }
+    }
+
+    val monthFormatter = remember(state.localeConfiguration, state.useGregorianLabels, state.useLatinDigits) {
+        when {
+            state.useGregorianLabels || state.localeConfiguration.calendarSystem == CalendarSystem.Gregorian ->
+                MonthFormatter.Gregorian
+            state.useLatinDigits -> MonthFormatter.PersianWithLatinTransliteration
+            else -> MonthFormatter.Persian
+        }
+    }
+
+    val yearFormatter = remember(state.showGregorianYearHint, state.localeConfiguration) {
+        if (state.showGregorianYearHint && state.localeConfiguration.calendarSystem == CalendarSystem.Persian) {
+            YearFormatter.WithGregorianHint
+        } else {
+            YearFormatter.Default
+        }
+    }
+
+    val strings = remember(state.localeConfiguration) {
+        DatePickerStrings.localized()
+    }
+
+    val colors = remember(isDarkTheme, colorScheme) {
+        if (isDarkTheme) {
+            DatePickerDefaults.darkColors(
+                gradientStart = colorScheme.primary,
+                gradientEnd = colorScheme.tertiary,
+                containerColor = colorScheme.surface,
+                titleTextColor = colorScheme.onPrimary,
+                subtitleTextColor = colorScheme.onPrimary.copy(alpha = 0.88f),
+                controlIconColor = colorScheme.onPrimary.copy(alpha = 0.85f),
+                todayButtonBackground = colorScheme.primary.copy(alpha = 0.35f),
+                todayButtonContent = colorScheme.onPrimary,
+                confirmButtonBackground = colorScheme.primary,
+                confirmButtonContent = colorScheme.onPrimary,
+                cancelButtonContent = colorScheme.onPrimary.copy(alpha = 0.9f),
+                todayOutline = colorScheme.primary.copy(alpha = 0.85f),
+                weekendLabelColor = colorScheme.tertiary.copy(alpha = 0.9f),
+            )
+        } else {
+            DatePickerDefaults.lightColors(
+                gradientStart = colorScheme.primary,
+                gradientEnd = colorScheme.tertiary,
+                containerColor = colorScheme.surface,
+                titleTextColor = colorScheme.onPrimary,
+                subtitleTextColor = colorScheme.onPrimary.copy(alpha = 0.88f),
+                controlIconColor = colorScheme.onPrimary.copy(alpha = 0.8f),
+                todayButtonBackground = colorScheme.primary.copy(alpha = 0.22f),
+                todayButtonContent = colorScheme.onPrimary,
+                confirmButtonBackground = colorScheme.primary,
+                confirmButtonContent = colorScheme.onPrimary,
+                cancelButtonContent = colorScheme.primary.copy(alpha = 0.85f),
+                todayOutline = colorScheme.primary.copy(alpha = 0.9f),
+                weekendLabelColor = colorScheme.tertiary,
+            )
+        }
+    }
+
+    val dialogConfig = remember(
+        strings,
+        digitMode,
+        state.showTodayShortcut,
+        constraints,
+        weekConfiguration,
+        quickActions,
+        eventIndicator,
+        monthFormatter,
+        yearFormatter,
+        colors,
+    ) {
+        DatePickerConfig(
+            strings = strings,
+            digitMode = digitMode,
+            showTodayAction = state.showTodayShortcut,
+            constraints = constraints,
+            weekConfiguration = weekConfiguration,
+            quickActions = quickActions,
+            eventIndicator = eventIndicator,
+            monthFormatter = monthFormatter,
+            yearFormatter = yearFormatter,
+            colors = colors,
+        )
+    }
+
+    val formatting = remember(digitMode, monthFormatter, yearFormatter, rangeFormatter) {
+        CalendarFormatting(
+            digitMode = digitMode,
+            monthFormatter = monthFormatter,
+            yearFormatter = yearFormatter,
+            rangeFormatter = rangeFormatter,
+        )
+    }
+
+    return CalendarShowcaseUiState(
+        today = state.today,
+
+        upcomingMilestone = upcomingMilestone,
+        constraints = constraints,
+        weekConfiguration = weekConfiguration,
+        dialogConfig = dialogConfig,
+        formatting = formatting,
+    )
+}
+
+
+
+
+@Composable
 fun rememberCalendarShowcaseState(
     todayProvider: () -> SoleimaniDate = { PersionCalendar().toSoleimaniDate() },
     localeResolver: () -> CalendarLocaleConfiguration = { CalendarLocalization.inferFromSystem() },
@@ -381,12 +423,7 @@ private fun buildQuickActions(
     upcomingMilestone: SoleimaniDate,
 ): List<DatePickerQuickAction> = buildList {
     if (showTodayShortcut) add(DatePickerQuickAction.Today)
-    // اگر API شما ClearSelection را به‌صورت object تعریف کرده، پرانتز را حذف کنید.
-    addAll(
-        buildList {
-            if (enableClearAction) add(DatePickerQuickAction.ClearSelection())
-        }
-    )
+    if (enableClearAction) add(DatePickerQuickAction.ClearSelection())
     add(
         DatePickerQuickAction.JumpToDate(
             actionLabel = milestoneLabel,
