@@ -49,6 +49,9 @@ import com.msa.calendar.ui.DatePickerQuickAction
 import com.msa.calendar.utils.FormatHelper
 import com.msa.calendar.utils.toPersianNumber
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+
 @Composable
 fun RangeCalendarScreen(
     onDismiss: (Boolean) -> Unit,
@@ -122,7 +125,7 @@ fun RangeCalendarScreen(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(Color.Black.copy(alpha = 0.35f))
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.35f))
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -139,11 +142,13 @@ fun RangeCalendarScreen(
                 shadowElevation = 24.dp,
                 color = colors.containerColor,
             ) {
-                Column(
-                    modifier = Modifier
-                        .animateContentSize()
+                CompositionLocalProvider(
+                    LocalLayoutDirection provides weekConfiguration.layoutDirection,
                 ) {
-
+                    Column(
+                        modifier = Modifier
+                            .animateContentSize()
+                    ) {
                     val monthLabel = remember(visibleMonth, config.monthFormatter, config.digitMode) {
                         config.monthFormatter.format(visibleMonth, config.digitMode)
                     }
@@ -223,7 +228,8 @@ fun RangeCalendarScreen(
                                     endDate = if (constraints.isDateSelectable(resolved)) resolved else null
                                 }
                             }
-                        }
+                        },
+                        layoutDirection = weekConfiguration.layoutDirection,
                     )
 
                     Crossfade(targetState = pickerType, label = "") { state ->
@@ -355,6 +361,7 @@ fun RangeCalendarScreen(
                         }
                     }
                 }
+                }
             }
         }
     }
@@ -368,7 +375,7 @@ fun RangeCalendarScreenPreview() {
         onDismiss = { hideDatePicker = true },
         setDate = { _ -> },
         config = DatePickerConfig(
-            strings = DatePickerStrings(title = "Range Picker"),
+            strings = DatePickerStrings.localized().copy(title = "Range Picker"),
             digitMode = DigitMode.Persian,
         )
     )

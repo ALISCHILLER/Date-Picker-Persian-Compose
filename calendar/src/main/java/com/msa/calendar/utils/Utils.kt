@@ -8,38 +8,38 @@ data class MonthDayCell(
     val dayOfMonth: Int?,
     val date: SoleimaniDate?,
     val dayOfWeek: DayOfWeek,
+    val weekdayIndex: Int,
 )
 
 fun buildMonthCells(month: Int, year: Int, startDay: DayOfWeek): List<MonthDayCell> {
     if (month !in 1..12) {
         return emptyList()
     }
-    val firstDayOfMonth = PersionCalendar(year, month, 1)
-    val firstDay = firstDayOfMonth.dayOfWeek().toDayOfWeek()
-    val daysInMonth = when {
-        month <= 6 -> 31
-        month <= 11 -> 30
-        else -> if (PersionCalendar(year, 12, 1).isLeap()) 30 else 29
-    }
-    val offset = ((firstDay.value - startDay.value + 7) % 7)
+    val firstDay = PersianCalendarEngine.dayOfWeek(year, month, 1)
+    val daysInMonth = PersianCalendarEngine.monthLength(year, month)
+    val offset = firstDay.indexRelativeTo(startDay)
 
     return buildList {
         repeat(offset) { index ->
+            val dayOfWeek = dayOfWeekFromOffset(startDay, index)
             add(
                 MonthDayCell(
                     dayOfMonth = null,
                     date = null,
-                    dayOfWeek = dayOfWeekFromOffset(startDay, index),
+                    dayOfWeek = dayOfWeek,
+                    weekdayIndex = dayOfWeek.indexRelativeTo(startDay),
                 )
             )
         }
         for (day in 1..daysInMonth) {
             val cellOffset = offset + day - 1
+            val dayOfWeek = dayOfWeekFromOffset(startDay, cellOffset)
             add(
                 MonthDayCell(
                     dayOfMonth = day,
                     date = SoleimaniDate(year, month, day),
-                    dayOfWeek = dayOfWeekFromOffset(startDay, cellOffset),
+                    dayOfWeek = dayOfWeek,
+                    weekdayIndex = dayOfWeek.indexRelativeTo(startDay),
                 )
             )
         }
@@ -47,16 +47,15 @@ fun buildMonthCells(month: Int, year: Int, startDay: DayOfWeek): List<MonthDayCe
 }
 
 
-internal fun Int.toDayOfWeek(): DayOfWeek {
-    val normalized = ((this + 5) % 7 + 7) % 7
-    return DayOfWeek.of(normalized + 1)
-}
 
 private fun dayOfWeekFromOffset(startDay: DayOfWeek, offset: Int): DayOfWeek {
     val normalized = ((startDay.value - 1 + offset) % 7 + 7) % 7
     return DayOfWeek.of(normalized + 1)
 }
 
+fun DayOfWeek.indexRelativeTo(startDay: DayOfWeek): Int {
+    return ((value - startDay.value) % 7 + 7) % 7
+}
 
 fun addLeadingZero(number: Int): String {
     return number.toString().padStart(2, '0')

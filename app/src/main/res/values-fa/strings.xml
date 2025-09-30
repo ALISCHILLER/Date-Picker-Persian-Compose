@@ -1,0 +1,80 @@
+<resources>
+    <string name="app_name">نمونه تقویم فارسی</string>
+
+    <string name="showcase_appbar_title">نمونه انتخاب تاریخ فارسی</string>
+    <string name="showcase_intro_body">این صفحه سناریوهای متداول استفاده از کتابخانه را با ظاهری نو و منسجم نمایش می‌دهد.</string>
+
+    <string name="showcase_section_experience_title">تنظیمات تجربه</string>
+    <string name="showcase_section_experience_subtitle">می‌توانید رفتار، بومی‌سازی و محدودیت‌های تقویم را در این بخش شخصی‌سازی کنید.</string>
+    <string name="showcase_section_quick_title">انتخاب‌های سریع</string>
+    <string name="showcase_section_quick_subtitle">میانبرهای کاربردی برای تست و نمایش حالات مختلف انتخاب تاریخ.</string>
+    <string name="showcase_section_report_title">گزارش انتخاب‌ها</string>
+    <string name="showcase_section_report_subtitle">جزئیات آخرین تعامل و محدودیت‌های فعال روی تقویم را بررسی کنید.</string>
+
+    <string name="showcase_category_display">نمایش و زبان</string>
+    <string name="showcase_category_behavior">رفتار انتخاب</string>
+
+    <string name="showcase_toggle_latin_digits_title">نمایش اعداد لاتین</string>
+    <string name="showcase_toggle_latin_digits_subtitle">برای نمایش و تست نسخه‌های بین‌المللی.</string>
+    <string name="showcase_toggle_gregorian_labels_title">برچسب ماه‌های میلادی</string>
+    <string name="showcase_toggle_gregorian_labels_subtitle">ماه‌ها با نام‌های میلادی نمایش داده می‌شوند.</string>
+    <string name="showcase_toggle_gregorian_year_title">نمایش سال میلادی کنار سال شمسی</string>
+    <string name="showcase_toggle_gregorian_year_subtitle">نمایش یک اشاره کوچک به معادل میلادی.</string>
+
+    <string name="showcase_toggle_today_shortcut_title">دکمه دسترسی سریع به امروز</string>
+    <string name="showcase_toggle_today_shortcut_subtitle">نمایش دکمه‌ای برای پرش سریع به امروز.</string>
+    <string name="showcase_toggle_limit_30_title">محدود کردن به ۳۰ روز آینده</string>
+    <string name="showcase_toggle_limit_30_subtitle">انتخاب تاریخ فقط از امروز تا سی روز بعد.</string>
+    <string name="showcase_toggle_disable_weekend_title">غیرفعال کردن روزهای تعطیل</string>
+    <string name="showcase_toggle_disable_weekend_subtitle">برای سناریوهای کاری که روزهای تعطیل قابل انتخاب نیستند.</string>
+    <string name="showcase_toggle_block_13_title">مسدود کردن روز سیزدهم هر ماه</string>
+    <string name="showcase_toggle_block_13_subtitle">نمایش امکان علامت‌گذاری تاریخ‌های خاص.</string>
+    <string name="showcase_toggle_enable_clear_title">فعال بودن دکمه پاک‌سازی</string>
+    <string name="showcase_toggle_enable_clear_subtitle">اجازه حذف سریع انتخاب‌های قبلی.</string>
+    <string name="showcase_toggle_international_week_title">تعریف تعطیلات بین‌المللی</string>
+    <string name="showcase_toggle_international_week_subtitle">شروع هفته دوشنبه و تعطیلی شنبه/یکشنبه.</string>
+    <string name="showcase_toggle_highlight_events_title">نمایش رویدادهای ویژه</string>
+    <string name="showcase_toggle_highlight_events_subtitle">افزودن نشانگر بصری برای روزهای مهم.</string>
+    <string name="showcase_toggle_limit_range_title">محدودیت طول بازه</string>
+    <string name="showcase_toggle_limit_range_subtitle">حداکثر طول بازه را به ۱۰ روز کاهش می‌دهد.</string>
+
+    <string name="showcase_action_single_picker">انتخاب تاریخ تکی</string>
+    <string name="showcase_action_range_picker">انتخاب بازه تاریخ</string>
+    <string name="showcase_action_today">ثبت سریع امروز</string>
+    <string name="showcase_action_clear">پاک کردن انتخاب‌ها</string>
+    <string name="showcase_action_repeat_last">تکرار آخرین حالت</string>
+
+    <string name="showcase_summary_single_title">تاریخ انتخاب‌شده</string>
+    <string name="showcase_summary_range_title">بازه انتخاب‌شده</string>
+    <string name="showcase_summary_none_single">تاریخی انتخاب نشده است.</string>
+    <string name="showcase_summary_none_range">بازه‌ای انتخاب نشده است.</string>
+    <string name="showcase_summary_milestone_title">رویداد بعدی</string>
+    <string name="showcase_summary_range_format">%1$s تا %2$s</string>
+    <string name="showcase_summary_last_single">آخرین عمل: انتخاب تاریخ تکی</string>
+    <string name="showcase_summary_last_range">آخرین عمل: انتخاب بازه</string>
+    <string name="showcase_summary_last_quick">آخرین عمل: ثبت سریع امروز</string>
+
+    <string name="showcase_summary_week_start">شروع هفته از %1$s است.</string>
+    <string name="showcase_summary_weekend_days">روزهای تعطیل: %1$s.</string>
+    <string name="showcase_summary_limit_between">انتخاب تاریخ تنها بین %1$s تا %2$s امکان‌پذیر است.</string>
+    <string name="showcase_summary_limit_between_none">هیچ محدودیت حداقلی یا حداکثری تعریف نشده است.</string>
+    <string name="showcase_summary_weekend_blocked">%1$s برای انتخاب غیرفعال شده‌اند.</string>
+    <string name="showcase_summary_block_13">روز سیزدهم هر ماه مسدود است%1$s.</string>
+    <string name="showcase_summary_block_13_suffix"> (%1$s تاریخ)</string>
+    <string name="showcase_summary_max_range">حداکثر طول بازه %1$s روز تعریف شده است.</string>
+    <string name="showcase_summary_active_window">محدوده فعال از %1$s تا %2$s تعیین شده است.</string>
+    <string name="showcase_summary_active_rules_title">محدودیت‌های فعال</string>
+    <string name="showcase_summary_no_rules">هیچ محدودیتی فعال نیست.</string>
+
+    <string name="showcase_legend_title">راهنمای نشانگرهای خودکار</string>
+    <string name="showcase_legend_disabled">نمایش رویدادهای ویژه در حال حاضر غیرفعال است.</string>
+    <string name="showcase_event_disabled">تاریخ مسدود</string>
+    <string name="showcase_event_month_start">آغاز ماه</string>
+    <string name="showcase_event_today">امروز</string>
+    <string name="showcase_quick_action_next_milestone">رویداد بعدی</string>
+
+    <string name="showcase_locale_system">بر اساس تنظیمات سیستم</string>
+    <string name="showcase_locale_persian">فارسی</string>
+    <string name="showcase_locale_english">انگلیسی</string>
+    <string name="showcase_language_selector_label">زبان رابط کاربری</string>
+</resources>

@@ -1,41 +1,80 @@
 <resources>
-    <string name="app_name">PersionCalendar</string>
+    <string name="app_name">Persian Calendar Showcase</string>
 
+    <string name="showcase_appbar_title">Persian date picker demo</string>
+    <string name="showcase_intro_body">This screen demonstrates common scenarios with a polished and cohesive calendar experience.</string>
 
-    <string name="saturday">شنبه</string>
-    <string name="sunday">یکشنبه</string>
-    <string name="monday">دوشنبه</string>
-    <string name="tuesday">سه شنبه</string>
-    <string name="wednesdays">چهارشنبه</string>
-    <string name="thursday">پنجشنبه</string>
-    <string name="friday">جمعه</string>
-    <string name="farvardin">فروردین</string>
-    <string name="ordibehesht">اردیبهشت</string>
-    <string name="khordad">خرداد</string>
-    <string name="tir">تیر</string>
-    <string name="mordad">مرداد</string>
-    <string name="shahrivar">شهریور</string>
-    <string name="mehr">مهر</string>
-    <string name="aban">آبان</string>
-    <string name="azar">آذر</string>
-    <string name="dey">دی</string>
-    <string name="bahman">بهمن</string>
-    <string name="esfand">اسفند</string>
-    <string name="january">ژانویه</string>
-    <string name="february">فوریه</string>
-    <string name="march">مارس</string>
-    <string name="april">آوریل</string>
-    <string name="may">مه</string>
-    <string name="jun">ژوئن</string>
-    <string name="july">ژوئیه</string>
-    <string name="august">اوت</string>
-    <string name="september">سپتامبر</string>
-    <string name="october">اکتبر</string>
-    <string name="november">نوامبر</string>
-    <string name="december">دسامبر</string>
-    <string name="persian_full_date">%1s %2s %3s %4s</string>
-    <string name="gregorian_full_date">%1s %2s %3s</string>
-    <string name="events_of_this_day">مناسبت های این روز :</string>
-    <string name="set_a_work_to_do">کاری برای انجام در این روز تنظیم کنید</string>
-    <string name="google_calendar_events">رویدادهای تقویم گوگل :</string>
+    <string name="showcase_section_experience_title">Experience settings</string>
+    <string name="showcase_section_experience_subtitle">Personalise calendar behaviour, localisation, and constraints.</string>
+    <string name="showcase_section_quick_title">Quick actions</string>
+    <string name="showcase_section_quick_subtitle">Trigger frequent scenarios to validate how the picker responds.</string>
+    <string name="showcase_section_report_title">Selection summary</string>
+    <string name="showcase_section_report_subtitle">Inspect the latest interaction and the constraints that are currently active.</string>
+
+    <string name="showcase_category_display">Display &amp; language</string>
+    <string name="showcase_category_behavior">Selection behaviour</string>
+
+    <string name="showcase_toggle_latin_digits_title">Show Latin digits</string>
+    <string name="showcase_toggle_latin_digits_subtitle">Preview the picker using Latin numerals for international layouts.</string>
+    <string name="showcase_toggle_gregorian_labels_title">Use Gregorian month labels</string>
+    <string name="showcase_toggle_gregorian_labels_subtitle">Display month names in the Gregorian calendar.</string>
+    <string name="showcase_toggle_gregorian_year_title">Show Gregorian year hint</string>
+    <string name="showcase_toggle_gregorian_year_subtitle">Adds a secondary hint with the Gregorian year value.</string>
+
+    <string name="showcase_toggle_today_shortcut_title">Today shortcut button</string>
+    <string name="showcase_toggle_today_shortcut_subtitle">Expose a button that jumps directly to the current date.</string>
+    <string name="showcase_toggle_limit_30_title">Limit to the next 30 days</string>
+    <string name="showcase_toggle_limit_30_subtitle">Allow picking dates only from today up to thirty days ahead.</string>
+    <string name="showcase_toggle_disable_weekend_title">Disable weekend days</string>
+    <string name="showcase_toggle_disable_weekend_subtitle">Ideal for business scenarios where weekend days are unavailable.</string>
+    <string name="showcase_toggle_block_13_title">Block the thirteenth of each month</string>
+    <string name="showcase_toggle_block_13_subtitle">Demonstrates how specific dates can be marked as unavailable.</string>
+    <string name="showcase_toggle_enable_clear_title">Enable clear action</string>
+    <string name="showcase_toggle_enable_clear_subtitle">Let users remove the previous selection with a single tap.</string>
+    <string name="showcase_toggle_international_week_title">International weekend layout</string>
+    <string name="showcase_toggle_international_week_subtitle">Start the week on Monday and mark Saturday/Sunday as weekend days.</string>
+    <string name="showcase_toggle_highlight_events_title">Show event highlights</string>
+    <string name="showcase_toggle_highlight_events_subtitle">Render subtle markers for noteworthy dates.</string>
+    <string name="showcase_toggle_limit_range_title">Limit range length</string>
+    <string name="showcase_toggle_limit_range_subtitle">Restrict selected ranges to a maximum of ten days.</string>
+
+    <string name="showcase_action_single_picker">Single date picker</string>
+    <string name="showcase_action_range_picker">Range date picker</string>
+    <string name="showcase_action_today">Set today</string>
+    <string name="showcase_action_clear">Clear selection</string>
+    <string name="showcase_action_repeat_last">Repeat last mode</string>
+
+    <string name="showcase_summary_single_title">Selected date</string>
+    <string name="showcase_summary_range_title">Selected range</string>
+    <string name="showcase_summary_none_single">No date selected.</string>
+    <string name="showcase_summary_none_range">No range selected.</string>
+    <string name="showcase_summary_milestone_title">Upcoming milestone</string>
+    <string name="showcase_summary_range_format">%1$s to %2$s</string>
+    <string name="showcase_summary_last_single">Last action: single date</string>
+    <string name="showcase_summary_last_range">Last action: range selection</string>
+    <string name="showcase_summary_last_quick">Last action: quick today</string>
+
+    <string name="showcase_summary_week_start">Week starts on %1$s.</string>
+    <string name="showcase_summary_weekend_days">Weekend days: %1$s.</string>
+    <string name="showcase_summary_limit_between">Selection limited to dates between %1$s and %2$s.</string>
+    <string name="showcase_summary_limit_between_none">No minimum or maximum date is enforced.</string>
+    <string name="showcase_summary_weekend_blocked">%1$s are disabled.</string>
+    <string name="showcase_summary_block_13">The 13th of each month is disabled%1$s.</string>
+    <string name="showcase_summary_block_13_suffix"> (%1$s dates)</string>
+    <string name="showcase_summary_max_range">Maximum range length is set to %1$s days.</string>
+    <string name="showcase_summary_active_window">Active window spans from %1$s to %2$s.</string>
+    <string name="showcase_summary_active_rules_title">Active constraints</string>
+    <string name="showcase_summary_no_rules">No additional constraints are enabled.</string>
+
+    <string name="showcase_legend_title">Legend of automatic highlights</string>
+    <string name="showcase_legend_disabled">Event highlights are currently disabled.</string>
+    <string name="showcase_event_disabled">Disabled</string>
+    <string name="showcase_event_month_start">Start of month</string>
+    <string name="showcase_event_today">Today</string>
+    <string name="showcase_quick_action_next_milestone">Next milestone</string>
+
+    <string name="showcase_locale_system">System default</string>
+    <string name="showcase_locale_persian">Persian</string>
+    <string name="showcase_locale_english">English</string>
+    <string name="showcase_language_selector_label">Interface language</string>
 </resources>

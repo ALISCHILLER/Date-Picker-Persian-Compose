@@ -11,7 +11,7 @@ fun adjustDayIfOutOfBounds(
 ): Int? {
     if (dayValue == null) return null
     if (month !in 1..12) return null
-    val monthLength = PersionCalendar(year, month, 1).getMonthLength()
+    val monthLength = PersianCalendarEngine.monthLength(year, month)
     if (monthLength <= 0) return null
     val coercedDay = dayValue.coerceIn(1, monthLength)
     return if (coercedDay != dayValue) coercedDay else null

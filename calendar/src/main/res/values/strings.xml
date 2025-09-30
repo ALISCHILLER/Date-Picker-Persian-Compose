@@ -1,41 +1,91 @@
 <resources>
-    <string name="app_name">PersionCalendar</string>
+    <string name="app_name">PersianCalendar</string>
 
+    <!-- Weekday names -->
+    <string name="saturday">Saturday</string>
+    <string name="sunday">Sunday</string>
+    <string name="monday">Monday</string>
+    <string name="tuesday">Tuesday</string>
+    <string name="wednesday">Wednesday</string>
+    <string name="thursday">Thursday</string>
+    <string name="friday">Friday</string>
 
-    <string name="saturday">شنبه</string>
-    <string name="sunday">یکشنبه</string>
-    <string name="monday">دوشنبه</string>
-    <string name="tuesday">سه شنبه</string>
-    <string name="wednesdays">چهارشنبه</string>
-    <string name="thursday">پنجشنبه</string>
-    <string name="friday">جمعه</string>
-    <string name="farvardin">فروردین</string>
-    <string name="ordibehesht">اردیبهشت</string>
-    <string name="khordad">خرداد</string>
-    <string name="tir">تیر</string>
-    <string name="mordad">مرداد</string>
-    <string name="shahrivar">شهریور</string>
-    <string name="mehr">مهر</string>
-    <string name="aban">آبان</string>
-    <string name="azar">آذر</string>
-    <string name="dey">دی</string>
-    <string name="bahman">بهمن</string>
-    <string name="esfand">اسفند</string>
-    <string name="january">ژانویه</string>
-    <string name="february">فوریه</string>
-    <string name="march">مارس</string>
-    <string name="april">آوریل</string>
-    <string name="may">مه</string>
-    <string name="jun">ژوئن</string>
-    <string name="july">ژوئیه</string>
-    <string name="august">اوت</string>
-    <string name="september">سپتامبر</string>
-    <string name="october">اکتبر</string>
-    <string name="november">نوامبر</string>
-    <string name="december">دسامبر</string>
-    <string name="persian_full_date">%1s %2s %3s %4s</string>
-    <string name="gregorian_full_date">%1s %2s %3s</string>
-    <string name="events_of_this_day">مناسبت های این روز :</string>
-    <string name="set_a_work_to_do">کاری برای انجام در این روز تنظیم کنید</string>
-    <string name="google_calendar_events">رویدادهای تقویم گوگل :</string>
+    <string name="weekday_sat_short">Sa</string>
+    <string name="weekday_sun_short">Su</string>
+    <string name="weekday_mon_short">Mo</string>
+    <string name="weekday_tue_short">Tu</string>
+    <string name="weekday_wed_short">We</string>
+    <string name="weekday_thu_short">Th</string>
+    <string name="weekday_fri_short">Fr</string>
+
+    <!-- Persian month names -->
+    <string name="farvardin">Farvardin</string>
+    <string name="ordibehesht">Ordibehesht</string>
+    <string name="khordad">Khordad</string>
+    <string name="tir">Tir</string>
+    <string name="mordad">Mordad</string>
+    <string name="shahrivar">Shahrivar</string>
+    <string name="mehr">Mehr</string>
+    <string name="aban">Aban</string>
+    <string name="azar">Azar</string>
+    <string name="dey">Dey</string>
+    <string name="bahman">Bahman</string>
+    <string name="esfand">Esfand</string>
+
+    <string name="farvardin_latin">Farvardin</string>
+    <string name="ordibehesht_latin">Ordibehesht</string>
+    <string name="khordad_latin">Khordad</string>
+    <string name="tir_latin">Tir</string>
+    <string name="mordad_latin">Mordad</string>
+    <string name="shahrivar_latin">Shahrivar</string>
+    <string name="mehr_latin">Mehr</string>
+    <string name="aban_latin">Aban</string>
+    <string name="azar_latin">Azar</string>
+    <string name="dey_latin">Dey</string>
+    <string name="bahman_latin">Bahman</string>
+    <string name="esfand_latin">Esfand</string>
+
+    <!-- Gregorian month names -->
+    <string name="january">January</string>
+    <string name="february">February</string>
+    <string name="march">March</string>
+    <string name="april">April</string>
+    <string name="may">May</string>
+    <string name="jun">June</string>
+    <string name="july">July</string>
+    <string name="august">August</string>
+    <string name="september">September</string>
+    <string name="october">October</string>
+    <string name="november">November</string>
+    <string name="december">December</string>
+
+    <string name="january_en">January</string>
+    <string name="february_en">February</string>
+    <string name="march_en">March</string>
+    <string name="april_en">April</string>
+    <string name="may_en">May</string>
+    <string name="june_en">June</string>
+    <string name="july_en">July</string>
+    <string name="august_en">August</string>
+    <string name="september_en">September</string>
+    <string name="october_en">October</string>
+    <string name="november_en">November</string>
+    <string name="december_en">December</string>
+
+    <!-- Date formatting -->
+    <string name="persian_full_date">%1$s %2$s %3$s %4$s</string>
+    <string name="gregorian_full_date">%1$s %2$s %3$s</string>
+
+    <string name="events_of_this_day">Events on this day:</string>
+    <string name="set_a_work_to_do">Schedule a task for this day</string>
+    <string name="google_calendar_events">Google Calendar events:</string>
+
+    <!-- Dialog strings -->
+    <string name="calendar_picker_title">Select date</string>
+    <string name="calendar_picker_confirm">Confirm</string>
+    <string name="calendar_picker_cancel">Cancel</string>
+    <string name="calendar_picker_today">Today</string>
+    <string name="calendar_picker_clear">Clear selection</string>
+    <string name="calendar_picker_range_start">Start date</string>
+    <string name="calendar_picker_range_end">End date</string>
 </resources>

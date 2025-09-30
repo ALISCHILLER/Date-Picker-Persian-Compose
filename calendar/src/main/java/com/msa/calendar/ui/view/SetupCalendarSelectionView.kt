@@ -74,6 +74,7 @@ fun CalendarView(
     colors: DatePickerColors,
     quickActions: List<DatePickerQuickAction>,
     onQuickActionClick: (DatePickerQuickAction) -> Unit,
+    layoutDirection: LayoutDirection,
 ) {
     val gradientBrush = remember(colors.gradientStart, colors.gradientEnd) {
         object : ShaderBrush() {
@@ -92,7 +93,7 @@ fun CalendarView(
         modifier = Modifier
             .animateContentSize()
     ) {
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -176,7 +177,7 @@ fun CalendarView(
         }
 
         if (quickActions.isNotEmpty()) {
-            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
                 FlowRow(
                     modifier = Modifier
                         .fillMaxWidth()

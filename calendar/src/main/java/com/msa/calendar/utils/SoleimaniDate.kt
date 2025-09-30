@@ -1,8 +1,10 @@
 package com.msa.calendar.utils
 
 import java.time.DayOfWeek
+import java.time.LocalDate
+
 /**
- * Represents a single date in the SoleimaniDate (Persian) calendar.
+ * Represents a single date in the Soleimani (Persian) calendar.
  */
 data class SoleimaniDate(
     val year: Int,
@@ -12,7 +14,7 @@ data class SoleimaniDate(
 
     init {
         require(month in 1..12) { "Month must be in 1..12 but was $month" }
-        val maxDayInMonth = monthLength(year, month)
+        val maxDayInMonth = PersianCalendarEngine.monthLength(year, month)
         require(day in 1..maxDayInMonth) {
             "Day must be in 1..$maxDayInMonth for month $month of year $year but was $day"
         }
@@ -24,6 +26,11 @@ data class SoleimaniDate(
      * Converts this date to a [PersionCalendar] instance.
      */
     fun toCalendar(): PersionCalendar = PersionCalendar(year, month, day)
+
+    /**
+     * Converts this date to the equivalent [LocalDate] in the Gregorian calendar.
+     */
+    fun toGregorian(): LocalDate = PersianCalendarEngine.toGregorian(year, month, day)
 
     /**
      * Creates a map that mirrors the previous public contract of the range picker.
@@ -49,15 +56,15 @@ data class SoleimaniDate(
             return runCatching { SoleimaniDate(yearValue, monthValue, dayValue) }.getOrNull()
         }
 
-        private fun monthLength(year: Int, month: Int): Int = PersionCalendar(year, month, 1).getMonthLength()
     }
 }
 
 /** Moves the date by [days] while keeping it within the Persian calendar system. */
 fun SoleimaniDate.plusDays(days: Int): SoleimaniDate? {
     if (days == 0) return this
-    val target = toCalendar().getDateByDiff(days)
-    return runCatching { target.toSoleimaniDate() }.getOrNull()
+    val targetGregorian = toGregorian().plusDays(days.toLong())
+    val (y, m, d) = PersianCalendarEngine.fromGregorian(targetGregorian)
+    return runCatching { SoleimaniDate(y, m, d) }.getOrNull()
 }
 
 /** Convenience wrapper around [plusDays] for subtracting days. */
@@ -70,14 +77,11 @@ fun SoleimaniDate.minusDays(days: Int): SoleimaniDate? = plusDays(-days)
 fun PersionCalendar.toSoleimaniDate(): SoleimaniDate = SoleimaniDate(getYear(), getMonth(), getDay())
 
 /** Returns the [DayOfWeek] represented by this date. */
-fun SoleimaniDate.dayOfWeek(): DayOfWeek = toCalendar().dayOfWeek().toDayOfWeek()
+fun SoleimaniDate.dayOfWeek(): DayOfWeek = PersianCalendarEngine.dayOfWeek(year, month, day)
 
 /** Calculates the signed number of days between this date and [other]. */
 fun SoleimaniDate.daysUntil(other: SoleimaniDate): Int {
-    val thisMillis = toCalendar().toGregorian().timeInMillis
-    val otherMillis = other.toCalendar().toGregorian().timeInMillis
-    val diff = otherMillis - thisMillis
-    return (diff / MILLIS_PER_DAY).toInt()
+    val thisEpoch = toGregorian().toEpochDay()
+    val otherEpoch = other.toGregorian().toEpochDay()
+    return (otherEpoch - thisEpoch).toInt()
 }
-
-private const val MILLIS_PER_DAY = 24L * 60L * 60L * 1000L

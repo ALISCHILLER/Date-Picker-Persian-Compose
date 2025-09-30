@@ -25,17 +25,17 @@ fun Int.toPersianMonth(context: Context): String = when (this) {
 
 /**
  * Turns the day number to its Persian equivalent.
- * Days must start from 0(Monday) to 6(Sunday)
+ * Days must start from 0 (Saturday) to 6 (Friday) for the Persian calendar.
  * @param context To use getString method
  */
 fun Int.toPersianWeekDay(context: Context): String = when (this) {
-    0 -> context.getString(R.string.monday)
-    1 -> context.getString(R.string.tuesday)
-    2 -> context.getString(R.string.wednesdays)
-    3 -> context.getString(R.string.thursday)
-    4 -> context.getString(R.string.friday)
-    5 -> context.getString(R.string.saturday)
-    6 -> context.getString(R.string.sunday)
+    0 -> context.getString(R.string.saturday)
+    1 -> context.getString(R.string.sunday)
+    2 -> context.getString(R.string.monday)
+    3 -> context.getString(R.string.tuesday)
+    4 -> context.getString(R.string.wednesday)
+    5 -> context.getString(R.string.thursday)
+    6 -> context.getString(R.string.friday)
     else -> throw IllegalArgumentException("Week day number is grater than 6: $this")
 }
 

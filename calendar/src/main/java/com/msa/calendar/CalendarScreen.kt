@@ -50,6 +50,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.LaunchedEffect
 import com.msa.calendar.utils.adjustDayIfOutOfBounds
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
 
 @Composable
 fun CalendarScreen(
@@ -117,7 +120,7 @@ fun CalendarScreen(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(Color.Black.copy(alpha = 0.35f))
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.35f))
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -135,197 +138,233 @@ fun CalendarScreen(
                 color = colors.containerColor,
             ) {
 
-                Column(
-                    modifier = Modifier
-                        .animateContentSize()
+                CompositionLocalProvider(
+                    LocalLayoutDirection provides weekConfiguration.layoutDirection,
                 ) {
-
-                    val monthLabel = remember(selectedMonth, config.monthFormatter, config.digitMode) {
-                        config.monthFormatter.format(selectedMonth, config.digitMode)
-                    }
-
-                    val yearLabel = remember(selectedYear, config.yearFormatter, config.digitMode) {
-                        config.yearFormatter.format(selectedYear, config.digitMode)
-                    }
-
-                    val selectedDate = remember(selectedYear, selectedMonth, selectedDay) {
-                        selectedDay?.let { day ->
-                            runCatching { SoleimaniDate(selectedYear, selectedMonth, day) }.getOrNull()
-                        }
-                    }
-                    val headerSubtitle = remember(selectedDate, monthLabel, yearLabel, config.digitMode, strings) {
-                        selectedDate?.let { date ->
-                            val dayText = when (config.digitMode) {
-                                DigitMode.Persian -> FormatHelper.toPersianNumber(addLeadingZero(date.day))
-                                DigitMode.Latin -> addLeadingZero(date.day)
-                            }
-                            "$dayText $monthLabel $yearLabel"
-                        } ?: strings.title
-                    }
-                    val highlightToday = remember(config.highlightToday, selectedMonth, selectedYear, constraints) {
-                        if (!config.highlightToday) return@remember null
-                        if (!constraints.isDateSelectable(todaySoleimani)) return@remember null
-                        if (todaySoleimani.month == selectedMonth && todaySoleimani.year == selectedYear) {
-                            todaySoleimani
-                        } else null
-                    }
-                    val isSelectionEnabled = remember(selectedDate, constraints) {
-                        selectedDate?.let(constraints::isDateSelectable) == true
-                    }
-                    val effectiveYearRange = remember(config.yearRange, selectedYear, todayYear, constraints) {
-                        val candidates = mutableListOf(
-                            config.yearRange.first,
-                            config.yearRange.last,
-                            selectedYear,
-                            todayYear,
-                        )
-                        constraints.minDate?.let { candidates += it.year }
-                        constraints.maxDate?.let { candidates += it.year }
-                        val minYear = candidates.minOrNull() ?: selectedYear
-                        val maxYear = candidates.maxOrNull() ?: selectedYear
-                        minYear..maxYear
-                    }
-                    CalendarView(
-                        monthLabel = monthLabel,
-                        yearLabel = yearLabel,
-                        pickerTypeChang = { pickerType = it },
-                        pickerType = pickerType,
-                        onPreviousMonth = {
-                            if (selectedMonth == 1) {
-                                selectedMonth = 12
-                                selectedYear -= 1
-                            } else {
-                                selectedMonth -= 1
-                            }
-                        },
-                        onNextMonth = {
-                            if (selectedMonth == 12) {
-                                selectedMonth = 1
-                                selectedYear += 1
-                            } else {
-                                selectedMonth += 1
-                            }
-                        },
-                        title = strings.title,
-                        subtitle = headerSubtitle,
-                        strings = strings,
-                        colors = colors,
-                        quickActions = quickActions,
-                        onQuickActionClick = quick@  { action ->
-                            when (action) {
-                                DatePickerQuickAction.Today -> {
-                                    val resolvedToday = constraints.nearestValidOrNull(todaySoleimani) ?: todaySoleimani
-                                    updateSelectionFromDate(resolvedToday)
-                                }
-
-                                is DatePickerQuickAction.ClearSelection -> {
-                                    selectedDay = null
-                                    pickerType = PickerType.Day
-                                }
-
-                                is DatePickerQuickAction.JumpToDate -> {
-                                    val target = action.targetDateProvider() ?: return@quick
-                                    val resolved = constraints.nearestValidOrNull(target) ?: target
-                                    updateSelectionFromDate(resolved)
-                                }
-                            }
-                        },
-                    )
-
-                    Crossfade(targetState = pickerType, label = "picker") { type ->
-                        when (type) {
-                            PickerType.Day -> DayOfWeekView(
-                                month = selectedMonth,
-                                selectedDay = selectedDay,
-                                year = selectedYear,
-                                highlightedDate = highlightToday,
-                                highlightColor = colors.todayOutline,
-                                weekConfiguration = weekConfiguration,
-                                digitMode = config.digitMode,
-                                weekendLabelColor = colors.weekendLabelColor,
-                                eventIndicator = config.eventIndicator,
-                                onDaySelected = { day -> selectedDay = day },
-                                isDateEnabled = { constraints.isDateSelectable(it) },
-                                changeSelectedPart = {}
-                            )
-
-                            PickerType.Year -> YearsView(
-                                selectedYear = selectedYear,
-                                digitMode = config.digitMode,
-                                yearFormatter = config.yearFormatter,
-                                yearRange = effectiveYearRange,
-                                colors = colors,
-                                onYearClick = { yearValue ->
-                                    selectedYear = yearValue
-                                },
-                            )
-
-                            PickerType.Month -> MonthView(
-                                selectedMonth = selectedMonth,
-                                displayedYear = selectedYear,
-                                digitMode = config.digitMode,
-                                monthFormatter = config.monthFormatter,
-                                colors = colors,
-                                onMonthSelected = { monthValue ->
-                                    selectedMonth = monthValue
-                                    pickerType = PickerType.Day
-                                },
-                            )
-
-                        }
-                    }
-                    HorizontalDivider(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        thickness = 1.dp,
-                        color = colors.cancelButtonContent.copy(alpha = 0.12f)
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .animateContentSize()
                     ) {
-                        TextButton(
-                            onClick = { onDismiss(true) },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.textButtonColors(
-                                containerColor = colors.todayButtonBackground,
-                                contentColor = colors.cancelButtonContent
-                            )
-                        ) {
-                            Text(text = strings.cancel)
-                        }
+                        val monthLabel =
+                            remember(selectedMonth, config.monthFormatter, config.digitMode) {
+                                config.monthFormatter.format(selectedMonth, config.digitMode)
+                            }
 
-                        Button(
-                            enabled = isSelectionEnabled,
-                            onClick = {
-                                val confirmed = selectedDate ?: return@Button
-                                if (!constraints.isDateSelectable(confirmed)) {
-                                    return@Button
-                                }
-                                onDateSelected(confirmed)
-                                onConfirm(config.dateFormatter.format(confirmed, config.digitMode))
-                                onDismiss(true)
-                            },
-                            modifier = Modifier.weight(1.2f),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colors.confirmButtonBackground,
-                                contentColor = colors.confirmButtonContent,
-                            )
+                        val yearLabel =
+                            remember(selectedYear, config.yearFormatter, config.digitMode) {
+                                config.yearFormatter.format(selectedYear, config.digitMode)
+                            }
+
+                        val selectedDate = remember(selectedYear, selectedMonth, selectedDay) {
+                            selectedDay?.let { day ->
+                                runCatching {
+                                    SoleimaniDate(
+                                        selectedYear,
+                                        selectedMonth,
+                                        day
+                                    )
+                                }.getOrNull()
+                            }
+                        }
+                        val headerSubtitle = remember(
+                            selectedDate,
+                            monthLabel,
+                            yearLabel,
+                            config.digitMode,
+                            strings
                         ) {
-                            Text(text = strings.confirm)
+                            selectedDate?.let { date ->
+                                val dayText = when (config.digitMode) {
+                                    DigitMode.Persian -> FormatHelper.toPersianNumber(
+                                        addLeadingZero(
+                                            date.day
+                                        )
+                                    )
+
+                                    DigitMode.Latin -> addLeadingZero(date.day)
+                                }
+                                "$dayText $monthLabel $yearLabel"
+                            } ?: strings.title
+                        }
+                        val highlightToday = remember(
+                            config.highlightToday,
+                            selectedMonth,
+                            selectedYear,
+                            constraints
+                        ) {
+                            if (!config.highlightToday) return@remember null
+                            if (!constraints.isDateSelectable(todaySoleimani)) return@remember null
+                            if (todaySoleimani.month == selectedMonth && todaySoleimani.year == selectedYear) {
+                                todaySoleimani
+                            } else null
+                        }
+                        val isSelectionEnabled = remember(selectedDate, constraints) {
+                            selectedDate?.let(constraints::isDateSelectable) == true
+                        }
+                        val effectiveYearRange =
+                            remember(config.yearRange, selectedYear, todayYear, constraints) {
+                                val candidates = mutableListOf(
+                                    config.yearRange.first,
+                                    config.yearRange.last,
+                                    selectedYear,
+                                    todayYear,
+                                )
+                                constraints.minDate?.let { candidates += it.year }
+                                constraints.maxDate?.let { candidates += it.year }
+                                val minYear = candidates.minOrNull() ?: selectedYear
+                                val maxYear = candidates.maxOrNull() ?: selectedYear
+                                minYear..maxYear
+                            }
+                        CalendarView(
+                            monthLabel = monthLabel,
+                            yearLabel = yearLabel,
+                            pickerTypeChang = { pickerType = it },
+                            pickerType = pickerType,
+                            onPreviousMonth = {
+                                if (selectedMonth == 1) {
+                                    selectedMonth = 12
+                                    selectedYear -= 1
+                                } else {
+                                    selectedMonth -= 1
+                                }
+                            },
+                            onNextMonth = {
+                                if (selectedMonth == 12) {
+                                    selectedMonth = 1
+                                    selectedYear += 1
+                                } else {
+                                    selectedMonth += 1
+                                }
+                            },
+                            title = strings.title,
+                            subtitle = headerSubtitle,
+                            strings = strings,
+                            colors = colors,
+                            quickActions = quickActions,
+                            onQuickActionClick = quick@{ action ->
+                                when (action) {
+                                    DatePickerQuickAction.Today -> {
+                                        val resolvedToday =
+                                            constraints.nearestValidOrNull(todaySoleimani)
+                                                ?: todaySoleimani
+                                        updateSelectionFromDate(resolvedToday)
+                                    }
+
+                                    is DatePickerQuickAction.ClearSelection -> {
+                                        selectedDay = null
+                                        pickerType = PickerType.Day
+                                    }
+
+                                    is DatePickerQuickAction.JumpToDate -> {
+                                        val target = action.targetDateProvider() ?: return@quick
+                                        val resolved =
+                                            constraints.nearestValidOrNull(target) ?: target
+                                        updateSelectionFromDate(resolved)
+                                    }
+                                }
+                            },
+                            layoutDirection = weekConfiguration.layoutDirection,
+                        )
+
+                        Crossfade(targetState = pickerType, label = "picker") { type ->
+                            when (type) {
+                                PickerType.Day -> DayOfWeekView(
+                                    month = selectedMonth,
+                                    selectedDay = selectedDay,
+                                    year = selectedYear,
+                                    highlightedDate = highlightToday,
+                                    highlightColor = colors.todayOutline,
+                                    weekConfiguration = weekConfiguration,
+                                    digitMode = config.digitMode,
+                                    weekendLabelColor = colors.weekendLabelColor,
+                                    eventIndicator = config.eventIndicator,
+                                    onDaySelected = { day -> selectedDay = day },
+                                    isDateEnabled = { constraints.isDateSelectable(it) },
+                                    changeSelectedPart = {}
+                                )
+
+                                PickerType.Year -> YearsView(
+                                    selectedYear = selectedYear,
+                                    digitMode = config.digitMode,
+                                    yearFormatter = config.yearFormatter,
+                                    yearRange = effectiveYearRange,
+                                    colors = colors,
+                                    onYearClick = { yearValue ->
+                                        selectedYear = yearValue
+                                    },
+                                )
+
+                                PickerType.Month -> MonthView(
+                                    selectedMonth = selectedMonth,
+                                    displayedYear = selectedYear,
+                                    digitMode = config.digitMode,
+                                    monthFormatter = config.monthFormatter,
+                                    colors = colors,
+                                    onMonthSelected = { monthValue ->
+                                        selectedMonth = monthValue
+                                        pickerType = PickerType.Day
+                                    },
+                                )
+
+                            }
+                        }
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            thickness = 1.dp,
+                            color = colors.cancelButtonContent.copy(alpha = 0.12f)
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp, vertical = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TextButton(
+                                onClick = { onDismiss(true) },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.textButtonColors(
+                                    containerColor = colors.todayButtonBackground,
+                                    contentColor = colors.cancelButtonContent
+                                )
+                            ) {
+                                Text(text = strings.cancel)
+                            }
+
+                            Button(
+                                enabled = isSelectionEnabled,
+                                onClick = {
+                                    val confirmed = selectedDate ?: return@Button
+                                    if (!constraints.isDateSelectable(confirmed)) {
+                                        return@Button
+                                    }
+                                    onDateSelected(confirmed)
+                                    onConfirm(
+                                        config.dateFormatter.format(
+                                            confirmed,
+                                            config.digitMode
+                                        )
+                                    )
+                                    onDismiss(true)
+                                },
+                                modifier = Modifier.weight(1.2f),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = colors.confirmButtonBackground,
+                                    contentColor = colors.confirmButtonContent,
+                                )
+                            ) {
+                                Text(text = strings.confirm)
+                            }
                         }
                     }
                 }
             }
         }
     }
-
 }
 
 
@@ -339,7 +378,7 @@ fun CalendarScreenPreview() {
         onDismiss = { hideDatePicker = true },
         onConfirm = {},
         config = DatePickerConfig(
-            strings = DatePickerStrings(title = "Test Title"),
+            strings = DatePickerStrings.localized().copy(title = "Test Title"),
             digitMode = DigitMode.Persian,
             showTodayAction = true,
             highlightToday = true,

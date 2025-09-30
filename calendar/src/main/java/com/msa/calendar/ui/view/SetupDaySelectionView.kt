@@ -35,7 +35,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.msa.calendar.components.shadow
@@ -43,8 +42,6 @@ import com.msa.calendar.ui.CalendarEvent
 import com.msa.calendar.ui.DatePickerDefaults
 import com.msa.calendar.ui.DigitMode
 import com.msa.calendar.ui.WeekConfiguration
-import com.msa.calendar.ui.theme.Purple40
-import com.msa.calendar.ui.theme.PurpleGrey80
 import com.msa.calendar.utils.FormatHelper
 import com.msa.calendar.utils.JlResDimens
 import com.msa.calendar.utils.SoleimaniDate
@@ -79,7 +76,7 @@ fun DayOfWeekView(
             horizontalArrangement = Arrangement.SpaceAround,
         ) {
             orderedWeekDays.forEach { day ->
-                val isWeekend = day in weekConfiguration.weekendDays
+                val isWeekend = weekConfiguration.isWeekend(day)
                 Text(
                     text = weekConfiguration.dayLabelFormatter.format(day),
                     color = if (isWeekend) weekendLabelColor else MaterialTheme.colorScheme.onSurface,
@@ -88,7 +85,7 @@ fun DayOfWeekView(
             }
         }
 
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        CompositionLocalProvider(LocalLayoutDirection provides weekConfiguration.layoutDirection) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(7),
                 modifier = Modifier
@@ -107,13 +104,13 @@ fun DayOfWeekView(
                             candidateDate.day == selectedDayValue &&
                             candidateDate.month == month
                     val isToday = highlightedDate != null && candidateDate == highlightedDate
-                    val isWeekend = candidateDate != null && cell.dayOfWeek in weekConfiguration.weekendDays
+                    val isWeekend = candidateDate != null && weekConfiguration.isWeekendIndex(cell.weekdayIndex)
                     val event = candidateDate?.let(eventIndicator)
 
                     val shadowColor = when {
-                        isSelected -> Purple40
+                        isSelected -> MaterialTheme.colorScheme.primary
                         isToday && isEnabled -> highlightColor
-                        else -> PurpleGrey80
+                        else -> MaterialTheme.colorScheme.surfaceVariant
                     }
 
                     Surface(
@@ -121,7 +118,7 @@ fun DayOfWeekView(
                             .aspectRatio(1f, true)
                             .padding(4.dp)
                             .shadow(
-                                color = if (isEnabled) shadowColor else PurpleGrey80.copy(alpha = 0.3f),
+                                color = if (isEnabled) shadowColor else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                                 borderRadius = 10.dp,
                                 offsetX = 0.dp,
                                 offsetY = 3.dp,

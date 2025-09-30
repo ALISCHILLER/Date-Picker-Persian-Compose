@@ -1,0 +1,101 @@
+<resources>
+    <string-array name="persian_weekdays_full">
+        <item>@string/saturday</item>
+        <item>@string/sunday</item>
+        <item>@string/monday</item>
+        <item>@string/tuesday</item>
+        <item>@string/wednesday</item>
+        <item>@string/thursday</item>
+        <item>@string/friday</item>
+    </string-array>
+
+    <string-array name="persian_weekdays_short">
+        <item>@string/weekday_sat_short</item>
+        <item>@string/weekday_sun_short</item>
+        <item>@string/weekday_mon_short</item>
+        <item>@string/weekday_tue_short</item>
+        <item>@string/weekday_wed_short</item>
+        <item>@string/weekday_thu_short</item>
+        <item>@string/weekday_fri_short</item>
+    </string-array>
+
+    <string-array name="gregorian_weekdays_short_fa">
+        <item>@string/weekday_mon_short</item>
+        <item>@string/weekday_tue_short</item>
+        <item>@string/weekday_wed_short</item>
+        <item>@string/weekday_thu_short</item>
+        <item>@string/weekday_fri_short</item>
+        <item>@string/weekday_sat_short</item>
+        <item>@string/weekday_sun_short</item>
+    </string-array>
+
+    <string-array name="latin_weekdays_short">
+        <item>Mo</item>
+        <item>Tu</item>
+        <item>We</item>
+        <item>Th</item>
+        <item>Fr</item>
+        <item>Sa</item>
+        <item>Su</item>
+    </string-array>
+
+    <string-array name="persian_months">
+        <item>@string/farvardin</item>
+        <item>@string/ordibehesht</item>
+        <item>@string/khordad</item>
+        <item>@string/tir</item>
+        <item>@string/mordad</item>
+        <item>@string/shahrivar</item>
+        <item>@string/mehr</item>
+        <item>@string/aban</item>
+        <item>@string/azar</item>
+        <item>@string/dey</item>
+        <item>@string/bahman</item>
+        <item>@string/esfand</item>
+    </string-array>
+
+    <string-array name="persian_months_latin">
+        <item>@string/farvardin_latin</item>
+        <item>@string/ordibehesht_latin</item>
+        <item>@string/khordad_latin</item>
+        <item>@string/tir_latin</item>
+        <item>@string/mordad_latin</item>
+        <item>@string/shahrivar_latin</item>
+        <item>@string/mehr_latin</item>
+        <item>@string/aban_latin</item>
+        <item>@string/azar_latin</item>
+        <item>@string/dey_latin</item>
+        <item>@string/bahman_latin</item>
+        <item>@string/esfand_latin</item>
+    </string-array>
+
+    <string-array name="gregorian_months_fa">
+        <item>@string/january</item>
+        <item>@string/february</item>
+        <item>@string/march</item>
+        <item>@string/april</item>
+        <item>@string/may</item>
+        <item>@string/jun</item>
+        <item>@string/july</item>
+        <item>@string/august</item>
+        <item>@string/september</item>
+        <item>@string/october</item>
+        <item>@string/november</item>
+        <item>@string/december</item>
+    </string-array>
+
+    <string-array name="gregorian_months_en">
+        <item>@string/january_en</item>
+        <item>@string/february_en</item>
+        <item>@string/march_en</item>
+        <item>@string/april_en</item>
+        <item>@string/may_en</item>
+        <item>@string/june_en</item>
+        <item>@string/july_en</item>
+        <item>@string/august_en</item>
+        <item>@string/september_en</item>
+        <item>@string/october_en</item>
+        <item>@string/november_en</item>
+        <item>@string/december_en</item>
+    </string-array>
+</resources>

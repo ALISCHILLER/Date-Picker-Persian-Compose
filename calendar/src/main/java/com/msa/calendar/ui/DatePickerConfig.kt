@@ -1,28 +1,31 @@
 package com.msa.calendar.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import com.msa.calendar.R
+import com.msa.calendar.ui.theme.CalendarColorTokens
 import com.msa.calendar.utils.SoleimaniDate
 import com.msa.calendar.utils.addLeadingZero
 import com.msa.calendar.utils.daysUntil
 import com.msa.calendar.utils.minusDays
 import com.msa.calendar.utils.plusDays
-import com.msa.calendar.utils.toPersianNumber
+import com.msa.calendar.utils.CalendarResourceResolver
+import com.msa.calendar.utils.CalendarTextRepository
+import com.msa.calendar.utils.FormatHelper
 import java.time.DayOfWeek
 import kotlin.math.abs
-import com.msa.calendar.utils.FormatHelper
-import com.msa.calendar.utils.PersionCalendar
-import com.msa.calendar.utils.toDigitString
+
 /**
  * Controls the overall behaviour and appearance of the Persian date picker dialogs.
  */
 @Stable
 data class DatePickerConfig(
-    val strings: DatePickerStrings = DatePickerStrings(),
+    val strings: DatePickerStrings = DatePickerStrings.localized(),
     val colors: DatePickerColors = DatePickerDefaults.colors(),
     val digitMode: DigitMode = DigitMode.Persian,
     val highlightToday: Boolean = true,
@@ -43,14 +46,47 @@ data class DatePickerConfig(
  */
 @Immutable
 data class DatePickerStrings(
-    val title: String = "انتخاب تاریخ",
-    val confirm: String = "تایید",
-    val cancel: String = "انصراف",
-    val today: String = "امروز",
-    val clearSelection: String = "پاک کردن انتخاب",
-    val rangeStartLabel: String = "تاریخ شروع",
-    val rangeEndLabel: String = "تاریخ پایان",
-)
+    val title: String,
+    val confirm: String,
+    val cancel: String,
+    val today: String,
+    val clearSelection: String,
+    val rangeStartLabel: String,
+    val rangeEndLabel: String,
+) {
+    companion object {
+        fun localized(): DatePickerStrings = DatePickerStrings(
+            title = CalendarResourceResolver.string(
+                R.string.calendar_picker_title,
+                fallback = "Select date",
+            ),
+            confirm = CalendarResourceResolver.string(
+                R.string.calendar_picker_confirm,
+                fallback = "Confirm",
+            ),
+            cancel = CalendarResourceResolver.string(
+                R.string.calendar_picker_cancel,
+                fallback = "Cancel",
+            ),
+            today = CalendarResourceResolver.string(
+                R.string.calendar_picker_today,
+                fallback = "Today",
+            ),
+            clearSelection = CalendarResourceResolver.string(
+                R.string.calendar_picker_clear,
+                fallback = "Clear selection",
+            ),
+            rangeStartLabel = CalendarResourceResolver.string(
+                R.string.calendar_picker_range_start,
+                fallback = "Start date",
+            ),
+            rangeEndLabel = CalendarResourceResolver.string(
+                R.string.calendar_picker_range_end,
+                fallback = "End date",
+            ),
+        )
+    }
+}
 
 /**
  * Represents the colour palette that is used across the date picker dialog.
@@ -151,44 +187,40 @@ enum class DigitMode {
     Persian,
     Latin
 }
+
 @Immutable
 class MonthFormatter internal constructor(
-    private val persianLabels: List<String>,
-    private val latinLabels: List<String> = persianLabels,
+    private val provider: (DigitMode) -> List<String>,
 ) {
-    init {
-        require(persianLabels.size == 12) { "persianLabels must contain 12 month names" }
-        require(latinLabels.size == 12) { "latinLabels must contain 12 month names" }
-    }
-
     fun format(month: Int, digitMode: DigitMode): String {
         require(month in 1..12) { "month must be in 1..12 but was $month" }
-        val index = month - 1
-        return when (digitMode) {
-            DigitMode.Persian -> persianLabels[index]
-            DigitMode.Latin -> latinLabels[index]
-        }
+        val labels = provider(digitMode)
+        require(labels.size == 12) { "Month label provider must return 12 entries" }
+        return labels[month - 1]
     }
 
-    fun labels(digitMode: DigitMode): List<String> = when (digitMode) {
-        DigitMode.Persian -> persianLabels
-        DigitMode.Latin -> latinLabels
+    fun labels(digitMode: DigitMode): List<String> {
+        val labels = provider(digitMode)
+        require(labels.size == 12) { "Month label provider must return 12 entries" }
+        return labels
     }
 
     companion object {
-        val Persian = MonthFormatter(
-            persianLabels = persianMonthNames,
-        )
+        val Persian = MonthFormatter { CalendarTextRepository.persianMonthNames() }
 
-        val PersianWithLatinTransliteration = MonthFormatter(
-            persianLabels = persianMonthNames,
-            latinLabels = persianMonthNamesLatin,
-        )
+        val PersianWithLatinTransliteration = MonthFormatter { digitMode ->
+            when (digitMode) {
+                DigitMode.Persian -> CalendarTextRepository.persianMonthNames()
+                DigitMode.Latin -> CalendarTextRepository.persianMonthLatinNames()
+            }
+        }
 
-        val Gregorian = MonthFormatter(
-            persianLabels = gregorianMonthNamesFa,
-            latinLabels = gregorianMonthNamesEn,
-        )
+        val Gregorian = MonthFormatter { digitMode ->
+            when (digitMode) {
+                DigitMode.Persian -> CalendarTextRepository.gregorianMonthNamesFa()
+                DigitMode.Latin -> CalendarTextRepository.gregorianMonthNamesEn()
+            }
+        }
     }
 }
 
@@ -199,10 +231,10 @@ class YearFormatter internal constructor(
     fun format(year: Int, digitMode: DigitMode): String = formatter(year, digitMode)
 
     companion object {
-        val Default = YearFormatter { year, mode -> year.toDigitString(mode) }
+        val Default = YearFormatter { year, mode -> year.toDigits(mode) }
 
         val WithGregorianHint = YearFormatter { year, mode ->
-            val primary = year.toDigitString(mode)
+            val primary = year.toDigits(mode)
             val gregorianYear = year + 621
             val secondary = when (mode) {
                 DigitMode.Persian -> FormatHelper.toPersianNumber(gregorianYear.toString())
@@ -212,6 +244,7 @@ class YearFormatter internal constructor(
         }
     }
 }
+
 /**
  * Encapsulates the logic that produces the final string passed to the consumer when a date is confirmed.
  */
@@ -232,85 +265,50 @@ class DateFormatter internal constructor(
     }
 }
 
-
-private val persianMonthNames = listOf(
-    "فروردین",
-    "اردیبهشت",
-    "خرداد",
-    "تیر",
-    "مرداد",
-    "شهریور",
-    "مهر",
-    "آبان",
-    "آذر",
-    "دی",
-    "بهمن",
-    "اسفند",
-)
-
-private val persianMonthNamesLatin = listOf(
-    "Farvardin",
-    "Ordibehesht",
-    "Khordad",
-    "Tir",
-    "Mordad",
-    "Shahrivar",
-    "Mehr",
-    "Aban",
-    "Azar",
-    "Dey",
-    "Bahman",
-    "Esfand",
-)
-
-private val gregorianMonthNamesFa = listOf(
-    "ژانویه",
-    "فوریه",
-    "مارس",
-    "آوریل",
-    "مه",
-    "ژوئن",
-    "ژوئیه",
-    "اوت",
-    "سپتامبر",
-    "اکتبر",
-    "نوامبر",
-    "دسامبر",
-)
-
-private val gregorianMonthNamesEn = listOf(
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-)
-
 @Immutable
 data class CalendarEvent(
     val color: Color,
     val label: String? = null,
 )
 
+/**
+ * Week configuration and weekday text formatting
+ */
 @Immutable
 data class WeekConfiguration(
     val startDay: DayOfWeek = DayOfWeek.SATURDAY,
     val weekendDays: Set<DayOfWeek> = setOf(DayOfWeek.FRIDAY),
     val dayLabelFormatter: WeekdayFormatter = WeekdayFormatter.PersianShort,
+    val layoutDirection: LayoutDirection = LayoutDirection.Rtl,
 ) {
     init {
         require(weekendDays.isNotEmpty()) { "weekendDays must contain at least one day" }
     }
 
+    private val orderedDaysCache: List<DayOfWeek> = List(7) { startDay.shift(it) }
+    private val weekendIndexCache: Set<Int> = weekendDays.mapTo(mutableSetOf()) { indexOf(it) }
+
     val orderedDays: List<DayOfWeek>
-        get() = List(7) { startDay.shift(it) }
+        get() = orderedDaysCache
+
+    fun indexOf(day: DayOfWeek): Int = day.indexRelativeTo(startDay)
+
+    fun dayAt(index: Int): DayOfWeek = orderedDaysCache[floorModInt(index, 7)]
+
+    fun isWeekend(day: DayOfWeek): Boolean = day in weekendDays
+
+    fun isWeekendIndex(index: Int): Boolean = floorModInt(index, 7) in weekendIndexCache
+
+    companion object {
+        fun persian(): WeekConfiguration = WeekConfiguration()
+
+        fun gregorian(): WeekConfiguration = WeekConfiguration(
+            startDay = DayOfWeek.MONDAY,
+            weekendDays = setOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY),
+            dayLabelFormatter = WeekdayFormatter.PersianGregorian,
+            layoutDirection = LayoutDirection.Ltr,
+        )
+    }
 }
 
 @Immutable
@@ -321,27 +319,15 @@ class WeekdayFormatter internal constructor(
 
     companion object {
         val PersianShort = WeekdayFormatter { day ->
-            when (day) {
-                DayOfWeek.SATURDAY -> "ش"
-                DayOfWeek.SUNDAY -> "ی"
-                DayOfWeek.MONDAY -> "د"
-                DayOfWeek.TUESDAY -> "س"
-                DayOfWeek.WEDNESDAY -> "چ"
-                DayOfWeek.THURSDAY -> "پ"
-                DayOfWeek.FRIDAY -> "ج"
-            }
+            CalendarTextRepository.persianWeekdayShort(day)
         }
 
         val LatinShort = WeekdayFormatter { day ->
-            when (day) {
-                DayOfWeek.MONDAY -> "Mo"
-                DayOfWeek.TUESDAY -> "Tu"
-                DayOfWeek.WEDNESDAY -> "We"
-                DayOfWeek.THURSDAY -> "Th"
-                DayOfWeek.FRIDAY -> "Fr"
-                DayOfWeek.SATURDAY -> "Sa"
-                DayOfWeek.SUNDAY -> "Su"
-            }
+            CalendarTextRepository.latinWeekdayShort(day)
+        }
+
+        val PersianGregorian = WeekdayFormatter { day ->
+            CalendarTextRepository.gregorianWeekdayShortFa(day)
         }
     }
 }
@@ -370,19 +356,19 @@ object DatePickerDefaults {
     val ContainerShape: Shape = RoundedCornerShape(28.dp)
 
     fun colors(
-        gradientStart: Color = Color(0xFF0EA5E9),
-        gradientEnd: Color = Color(0xFF6366F1),
-        containerColor: Color = Color(0xFFF8FAFC),
-        titleTextColor: Color = Color(0xFFFFFFFF),
-        subtitleTextColor: Color = Color(0xFFF1F5F9),
-        controlIconColor: Color = Color(0xFFE0F2FE),
-        todayButtonBackground: Color = Color(0xFF2563EB).copy(alpha = 0.28f),
-        todayButtonContent: Color = Color(0xFFF8FAFC),
-        confirmButtonBackground: Color = Color(0xFF2563EB),
+        gradientStart: Color = CalendarColorTokens.gradientStart,
+        gradientEnd: Color = CalendarColorTokens.gradientEnd,
+        containerColor: Color = CalendarColorTokens.baseLight,
+        titleTextColor: Color = Color.White,
+        subtitleTextColor: Color = CalendarColorTokens.textMuted,
+        controlIconColor: Color = CalendarColorTokens.gradientEnd.copy(alpha = 0.65f),
+        todayButtonBackground: Color = CalendarColorTokens.gradientStart.copy(alpha = 0.24f),
+        todayButtonContent: Color = Color.White,
+        confirmButtonBackground: Color = CalendarColorTokens.gradientStart,
         confirmButtonContent: Color = Color.White,
-        cancelButtonContent: Color = Color(0xFF1E3A8A),
-        todayOutline: Color = Color(0xFF38BDF8),
-        weekendLabelColor: Color = Color(0xFFF97316),
+        cancelButtonContent: Color = CalendarColorTokens.textPrimary,
+        todayOutline: Color = CalendarColorTokens.gradientEnd,
+        weekendLabelColor: Color = CalendarColorTokens.accentOrange,
     ): DatePickerColors = lightColors(
         gradientStart = gradientStart,
         gradientEnd = gradientEnd,
@@ -400,19 +386,19 @@ object DatePickerDefaults {
     )
 
     fun lightColors(
-        gradientStart: Color = Color(0xFF0EA5E9),
-        gradientEnd: Color = Color(0xFF6366F1),
-        containerColor: Color = Color(0xFFF8FAFC),
-        titleTextColor: Color = Color(0xFFFFFFFF),
-        subtitleTextColor: Color = Color(0xFFF1F5F9),
-        controlIconColor: Color = Color(0xFFE0F2FE),
-        todayButtonBackground: Color = Color(0xFF2563EB).copy(alpha = 0.28f),
-        todayButtonContent: Color = Color(0xFFF8FAFC),
-        confirmButtonBackground: Color = Color(0xFF2563EB),
+        gradientStart: Color = CalendarColorTokens.gradientStart,
+        gradientEnd: Color = CalendarColorTokens.gradientEnd,
+        containerColor: Color = CalendarColorTokens.baseLight,
+        titleTextColor: Color = Color.White,
+        subtitleTextColor: Color = CalendarColorTokens.textMuted,
+        controlIconColor: Color = CalendarColorTokens.gradientEnd.copy(alpha = 0.65f),
+        todayButtonBackground: Color = CalendarColorTokens.gradientStart.copy(alpha = 0.24f),
+        todayButtonContent: Color = Color.White,
+        confirmButtonBackground: Color = CalendarColorTokens.gradientStart,
         confirmButtonContent: Color = Color.White,
-        cancelButtonContent: Color = Color(0xFF1E3A8A),
-        todayOutline: Color = Color(0xFF38BDF8),
-        weekendLabelColor: Color = Color(0xFFF97316),
+        cancelButtonContent: Color = CalendarColorTokens.textPrimary,
+        todayOutline: Color = CalendarColorTokens.gradientEnd,
+        weekendLabelColor: Color = CalendarColorTokens.accentOrange,
     ): DatePickerColors = DatePickerColors(
         gradientStart = gradientStart,
         gradientEnd = gradientEnd,
@@ -430,19 +416,19 @@ object DatePickerDefaults {
     )
 
     fun darkColors(
-        gradientStart: Color = Color(0xFF1D4ED8),
-        gradientEnd: Color = Color(0xFF312E81),
-        containerColor: Color = Color(0xFF0F172A),
-        titleTextColor: Color = Color(0xFFBFDBFE),
-        subtitleTextColor: Color = Color(0xFFE0F2FE),
-        controlIconColor: Color = Color(0xFFBAE6FD),
-        todayButtonBackground: Color = Color(0xFF1D4ED8).copy(alpha = 0.35f),
-        todayButtonContent: Color = Color(0xFFEFF6FF),
-        confirmButtonBackground: Color = Color(0xFF2563EB),
+        gradientStart: Color = CalendarColorTokens.textPrimary,
+        gradientEnd: Color = CalendarColorTokens.baseDark,
+        containerColor: Color = CalendarColorTokens.baseDark,
+        titleTextColor: Color = CalendarColorTokens.textMuted,
+        subtitleTextColor: Color = CalendarColorTokens.textMuted.copy(alpha = 0.8f),
+        controlIconColor: Color = CalendarColorTokens.gradientEnd.copy(alpha = 0.8f),
+        todayButtonBackground: Color = CalendarColorTokens.textPrimary.copy(alpha = 0.45f),
+        todayButtonContent: Color = CalendarColorTokens.textMuted,
+        confirmButtonBackground: Color = CalendarColorTokens.gradientStart,
         confirmButtonContent: Color = Color.White,
-        cancelButtonContent: Color = Color(0xFFBFDBFE),
-        todayOutline: Color = Color(0xFF38BDF8),
-        weekendLabelColor: Color = Color(0xFFFACC15),
+        cancelButtonContent: Color = CalendarColorTokens.textMuted,
+        todayOutline: Color = CalendarColorTokens.gradientEnd,
+        weekendLabelColor: Color = CalendarColorTokens.accentGold,
     ): DatePickerColors = DatePickerColors(
         gradientStart = gradientStart,
         gradientEnd = gradientEnd,
@@ -460,37 +446,27 @@ object DatePickerDefaults {
     )
 }
 
+/* ---------------------- Local helpers (no external deps) ---------------------- */
+
 private fun Int.toDigits(mode: DigitMode): String = when (mode) {
-    DigitMode.Persian -> toPersianNumber()
+    DigitMode.Persian -> FormatHelper.toPersianNumber(toString())
     DigitMode.Latin -> toString()
 }
 
 private fun String.toDigits(mode: DigitMode): String = when (mode) {
-    DigitMode.Persian -> this.toPersianNumber()
+    DigitMode.Persian -> FormatHelper.toPersianNumber(this)
     DigitMode.Latin -> this
 }
 
-private fun String.toPersianNumber(): String = buildString(length) {
-    for (character in this@toPersianNumber) {
-        append(
-            when (character) {
-                '0' -> '۰'
-                '1' -> '۱'
-                '2' -> '۲'
-                '3' -> '۳'
-                '4' -> '۴'
-                '5' -> '۵'
-                '6' -> '۶'
-                '7' -> '۷'
-                '8' -> '۸'
-                '9' -> '۹'
-                else -> character
-            }
-        )
-    }
-}
+/** Safe floor-mod for Int (works for negative indices too). */
+private fun floorModInt(a: Int, b: Int): Int = ((a % b) + b) % b
 
+/** Relative index of [this] with respect to [start], in range 0..6 */
+private fun DayOfWeek.indexRelativeTo(start: DayOfWeek): Int =
+    floorModInt(this.value - start.value, 7)
+
+/** Shift [this] forward by [days] days (can be negative), wrapping inside 7-day cycle. */
 internal fun DayOfWeek.shift(days: Int): DayOfWeek {
-    val normalized = ((value - 1 + days) % 7 + 7) % 7
+    val normalized = floorModInt((value - 1) + days, 7)
     return DayOfWeek.of(normalized + 1)
 }
