@@ -56,7 +56,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.lerp
 
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -76,14 +76,17 @@ fun CalendarView(
     onQuickActionClick: (DatePickerQuickAction) -> Unit,
     layoutDirection: LayoutDirection,
 ) {
-    val gradientBrush = remember(colors.gradientStart, colors.gradientEnd) {
+    val gradientHighlight = remember(colors.gradientStart, colors.gradientEnd) {
+        lerp(colors.gradientStart, colors.gradientEnd, 0.4f).copy(alpha = 0.95f)
+    }
+    val gradientBrush = remember(colors.gradientStart, colors.gradientEnd, gradientHighlight) {
         object : ShaderBrush() {
             override fun createShader(size: Size): Shader {
                 return LinearGradientShader(
                     from = Offset.Zero,
                     to = Offset(size.width, size.height),
-                    colors = listOf(colors.gradientStart, colors.gradientEnd),
-                    colorStops = listOf(0f, 1f)
+                    colors = listOf(colors.gradientStart, gradientHighlight, colors.gradientEnd),
+                    colorStops = listOf(0f, 0.55f, 1f)
                 )
             }
         }
@@ -197,13 +200,13 @@ fun CalendarView(
                             },
                             shape = RoundedCornerShape(16.dp),
                             colors = AssistChipDefaults.assistChipColors(
-                                containerColor = colors.todayButtonBackground.copy(alpha = 0.35f),
-                                labelColor = colors.cancelButtonContent,
-                                leadingIconContentColor = colors.cancelButtonContent,
+                                containerColor = colors.todayButtonBackground.copy(alpha = 0.4f),
+                                labelColor = colors.todayButtonContent,
+                                leadingIconContentColor = colors.todayButtonContent,
                             ),
                             border = BorderStroke(
                                 1.dp,
-                                colors.todayButtonBackground.copy(alpha = 0.6f)
+                                colors.todayOutline.copy(alpha = 0.75f)
                             )
                         )
                     }
