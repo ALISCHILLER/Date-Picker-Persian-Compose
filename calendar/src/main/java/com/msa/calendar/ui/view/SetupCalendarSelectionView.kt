@@ -237,6 +237,14 @@ fun CalendarView(
                             )
                         )
                     }
+                    val quickActionContentColor = remember(colors.containerColor, colors.brandViolet) {
+                        val baseLuminance = colors.containerColor.luminance()
+                        if (baseLuminance > 0.5f) {
+                            colors.brandViolet.copy(alpha = 0.9f)
+                        } else {
+                            Color.White.copy(alpha = 0.94f)
+                        }
+                    }
                     quickActions.forEach { action ->
                         AssistChip(
                             modifier = Modifier
@@ -253,8 +261,8 @@ fun CalendarView(
                             shape = chipShape,
                             colors = AssistChipDefaults.assistChipColors(
                                 containerColor = Color.Transparent,
-                                labelColor = Color.White.copy(alpha = 0.94f),
-                                leadingIconContentColor = Color.White.copy(alpha = 0.94f),
+                                labelColor = quickActionContentColor,
+                                leadingIconContentColor = quickActionContentColor,
                             ),
                             border = BorderStroke(1.dp, chipBorder)
                         )

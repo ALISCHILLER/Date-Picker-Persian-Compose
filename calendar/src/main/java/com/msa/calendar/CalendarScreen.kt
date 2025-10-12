@@ -50,6 +50,9 @@ import com.msa.calendar.ui.view.DayOfWeekView
 import com.msa.calendar.ui.view.MonthView
 import com.msa.calendar.ui.view.YearsView
 import com.msa.calendar.utils.*
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+
 
 @Composable
 fun CalendarScreen(
@@ -149,29 +152,36 @@ fun CalendarScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .drawBehind {
+                            val outline = shape.createOutline(size, layoutDirection, this)
+                            val drawWithBrush = { brush: Brush ->
+                                when (outline) {
+                                    is Outline.Rounded -> {
+                                        val roundRect = outline.roundRect
+                                        drawPath(Path().apply { addRoundRect(roundRect) }, brush = brush)
+                                    }
+                                    else -> drawRect(brush = brush)
+                                }
+                            }
                             val primaryRadius = size.width * 0.95f
-                            val cornerRadius = androidx.compose.ui.geometry.CornerRadius(48f, 48f)
-                            drawRoundRect(
-                                brush = Brush.radialGradient(
+                            drawWithBrush(
+                                Brush.radialGradient(
                                     colors = listOf(
                                         colors.brandViolet.copy(alpha = 0.38f),
                                         Color.Transparent,
                                     ),
                                     center = Offset(0f, size.height * 0.15f),
                                     radius = primaryRadius,
-                                ),
-                                cornerRadius = cornerRadius,
+                                )
                             )
-                            drawRoundRect(
-                                brush = Brush.radialGradient(
+                            drawWithBrush(
+                                Brush.radialGradient(
                                     colors = listOf(
                                         colors.brandTeal.copy(alpha = 0.3f),
                                         Color.Transparent,
                                     ),
                                     center = Offset(size.width, size.height),
                                     radius = primaryRadius * 0.9f,
-                                ),
-                                cornerRadius = cornerRadius,
+                                )
                             )
                         }
                 )
@@ -180,8 +190,14 @@ fun CalendarScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .drawBehind {
-                            val cornerRadius = androidx.compose.ui.geometry.CornerRadius(48f, 48f)
-                            drawRoundRect(brush = containerSheen, cornerRadius = cornerRadius, alpha = 1f)
+                            val outline = shape.createOutline(size, layoutDirection, this)
+                            when (outline) {
+                                is Outline.Rounded -> {
+                                    val roundRect = outline.roundRect
+                                    drawPath(Path().apply { addRoundRect(roundRect) }, brush = containerSheen, alpha = 1f)
+                                }
+                                else -> drawRect(brush = containerSheen, alpha = 1f)
+                            }
                         },
                     shape = shape,
                     tonalElevation = 0.dp,
