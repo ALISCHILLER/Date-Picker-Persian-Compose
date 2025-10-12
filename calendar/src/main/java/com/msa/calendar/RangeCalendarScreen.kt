@@ -305,6 +305,7 @@ fun RangeCalendarScreen(
                                     colors = colors,
                                     onYearClick = { selected ->
                                         visibleYear = selected
+                                        pickerType = PickerType.Month
                                     }
                                 )
 

@@ -16,34 +16,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,17 +45,11 @@ import com.msa.calendar.ui.DatePickerConfig
 import com.msa.calendar.ui.DatePickerQuickAction
 import com.msa.calendar.ui.DatePickerStrings
 import com.msa.calendar.ui.DigitMode
-import com.msa.calendar.ui.theme.CalendarColorTokens
 import com.msa.calendar.ui.view.CalendarView
 import com.msa.calendar.ui.view.DayOfWeekView
 import com.msa.calendar.ui.view.MonthView
 import com.msa.calendar.ui.view.YearsView
-import com.msa.calendar.utils.FormatHelper
-import com.msa.calendar.utils.PersionCalendar
-import com.msa.calendar.utils.PickerType
-import com.msa.calendar.utils.SoleimaniDate
-import com.msa.calendar.utils.addLeadingZero
-import com.msa.calendar.utils.adjustDayIfOutOfBounds
+import com.msa.calendar.utils.*
 
 @Composable
 fun CalendarScreen(
@@ -114,7 +90,6 @@ fun CalendarScreen(
     }
 
     var pickerType: PickerType by remember { mutableStateOf(PickerType.Day) }
-
     var selectedYear by remember { mutableStateOf(baseDate.year) }
     var selectedMonth by remember { mutableStateOf(baseDate.month.coerceIn(1, 12)) }
     var selectedDay by remember { mutableStateOf<Int?>(baseDate.day) }
@@ -124,9 +99,7 @@ fun CalendarScreen(
             dayValue = selectedDay,
             month = selectedMonth,
             year = selectedYear,
-        )?.let { coerced ->
-            selectedDay = coerced
-        }
+        )?.let { coerced -> selectedDay = coerced }
     }
 
     fun updateSelectionFromDate(target: SoleimaniDate) {
@@ -138,7 +111,7 @@ fun CalendarScreen(
 
     Dialog(onDismissRequest = { onDismiss(true) }) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // بک‌دراپ کلیکی برای dismiss
+            // Backdrop
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -166,15 +139,12 @@ fun CalendarScreen(
                 }
                 val containerSheen = remember(colors.brandTeal) {
                     Brush.radialGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.08f),
-                            Color.Transparent,
-                        ),
+                        colors = listOf(Color.White.copy(alpha = 0.08f), Color.Transparent),
                         center = Offset.Zero,
                     )
                 }
 
-                // افکت‌های پس‌زمینه
+                // Background effects
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -211,11 +181,7 @@ fun CalendarScreen(
                         .fillMaxWidth()
                         .drawBehind {
                             val cornerRadius = androidx.compose.ui.geometry.CornerRadius(48f, 48f)
-                            drawRoundRect(
-                                brush = containerSheen,
-                                cornerRadius = cornerRadius,
-                                alpha = 1f
-                            )
+                            drawRoundRect(brush = containerSheen, cornerRadius = cornerRadius, alpha = 1f)
                         },
                     shape = shape,
                     tonalElevation = 0.dp,
@@ -226,25 +192,22 @@ fun CalendarScreen(
                     CompositionLocalProvider(
                         LocalLayoutDirection provides weekConfiguration.layoutDirection,
                     ) {
-                        Column(modifier = Modifier) {
+                        Column {
                             val monthLabel = remember(selectedMonth, config.monthFormatter, config.digitMode) {
                                 config.monthFormatter.format(selectedMonth, config.digitMode)
                             }
-
                             val yearLabel = remember(selectedYear, config.yearFormatter, config.digitMode) {
                                 config.yearFormatter.format(selectedYear, config.digitMode)
                             }
-
                             val selectedDate = remember(selectedYear, selectedMonth, selectedDay) {
                                 selectedDay?.let { day ->
-                                    runCatching {
-                                        SoleimaniDate(selectedYear, selectedMonth, day)
-                                    }.getOrNull()
+                                    runCatching { SoleimaniDate(selectedYear, selectedMonth, day) }.getOrNull()
                                 }
                             }
 
-                            val headerSubtitle = remember(
-                                selectedDate, monthLabel, yearLabel, config.digitMode, strings
+                            // برچسب انتخاب (برای ساب‌تایتل)
+                            val selectionLabel: String? = remember(
+                                selectedDate, monthLabel, yearLabel, config.digitMode
                             ) {
                                 selectedDate?.let { date ->
                                     val dayText = when (config.digitMode) {
@@ -252,22 +215,14 @@ fun CalendarScreen(
                                         DigitMode.Latin -> addLeadingZero(date.day)
                                     }
                                     "$dayText $monthLabel $yearLabel"
-                                } ?: strings.title
+                                }
                             }
-
-                            CalendarDialogHeader(
-                                title = strings.title,
-                                subtitle = headerSubtitle,
-                                monthLabel = monthLabel,
-                                yearLabel = yearLabel,
-                                colors = colors,
-                                hasSelection = selectedDate != null,
-                            )
+                            val headerSubtitle = selectionLabel ?: strings.title
 
                             val highlightableToday = remember(config.highlightToday, constraints) {
-                                if (!config.highlightToday) return@remember null
-                                if (!constraints.isDateSelectable(todaySoleimani)) return@remember null
-                                todaySoleimani
+                                if (!config.highlightToday) null
+                                else if (!constraints.isDateSelectable(todaySoleimani)) null
+                                else todaySoleimani
                             }
 
                             val isSelectionEnabled = remember(selectedDate, constraints) {
@@ -290,22 +245,7 @@ fun CalendarScreen(
                                 minYear..maxYear
                             }
 
-                            AnimatedVisibility(
-                                visible = selectedDate != null,
-                                enter = fadeIn(animationSpec = tween(durationMillis = 220)) +
-                                        expandVertically(expandFrom = Alignment.Top),
-                                exit = fadeOut(animationSpec = tween(durationMillis = 200)) +
-                                        shrinkVertically(shrinkTowards = Alignment.Top),
-                            ) {
-                                Column {
-                                    SelectedDatePill(
-                                        formattedDate = headerSubtitle,
-                                        colors = colors,
-                                    )
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                }
-                            }
-
+                            // تنها هدر: CalendarView با هدر کامل و کنترل‌های داخل هدر
                             CalendarView(
                                 monthLabel = monthLabel,
                                 yearLabel = yearLabel,
@@ -315,17 +255,13 @@ fun CalendarScreen(
                                     if (selectedMonth == 1) {
                                         selectedMonth = 12
                                         selectedYear -= 1
-                                    } else {
-                                        selectedMonth -= 1
-                                    }
+                                    } else selectedMonth -= 1
                                 },
                                 onNextMonth = {
                                     if (selectedMonth == 12) {
                                         selectedMonth = 1
                                         selectedYear += 1
-                                    } else {
-                                        selectedMonth += 1
-                                    }
+                                    } else selectedMonth += 1
                                 },
                                 title = strings.title,
                                 subtitle = headerSubtitle,
@@ -335,9 +271,8 @@ fun CalendarScreen(
                                 onQuickActionClick = quick@{ action ->
                                     when (action) {
                                         DatePickerQuickAction.Today -> {
-                                            val resolvedToday =
-                                                constraints.nearestValidOrNull(todaySoleimani)
-                                                    ?: todaySoleimani
+                                            val resolvedToday = constraints.nearestValidOrNull(todaySoleimani)
+                                                ?: todaySoleimani
                                             updateSelectionFromDate(resolvedToday)
                                         }
                                         is DatePickerQuickAction.ClearSelection -> {
@@ -352,15 +287,29 @@ fun CalendarScreen(
                                     }
                                 },
                                 layoutDirection = weekConfiguration.layoutDirection,
+                                showHeaderDetails = true,        // عنوان + زیرعنوان در خود هدر
+                                showHeaderBackground = true,     // گرادیان هدر فعال
+                                headerSupportingContent = {      // قرص تاریخ انتخاب‌شده، داخل هدر
+                                    AnimatedVisibility(
+                                        visible = selectionLabel != null,
+                                        enter = fadeIn(tween(220)) + expandVertically(expandFrom = Alignment.Top),
+                                        exit = fadeOut(tween(200)) + shrinkVertically(shrinkTowards = Alignment.Top),
+                                    ) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                            SelectedDatePill(
+                                                formattedDate = selectionLabel.orEmpty(),
+                                                colors = colors,
+                                            )
+                                        }
+                                    }
+                                }
                             )
 
                             Crossfade(targetState = pickerType, label = "picker") { type ->
                                 when (type) {
                                     PickerType.Day -> {
-                                        // نسخه ساده‌شده بدون LocalMotionDurationScale
                                         val transitionDuration = 220
                                         val fadeDuration = 180
-
                                         AnimatedContent(
                                             targetState = selectedYear to selectedMonth,
                                             transitionSpec = {
@@ -402,16 +351,17 @@ fun CalendarScreen(
                                             )
                                         }
                                     }
-
                                     PickerType.Year -> YearsView(
                                         selectedYear = selectedYear,
                                         digitMode = config.digitMode,
                                         yearFormatter = config.yearFormatter,
                                         yearRange = effectiveYearRange,
                                         colors = colors,
-                                        onYearClick = { yearValue -> selectedYear = yearValue },
+                                        onYearClick = { yearValue ->
+                                            selectedYear = yearValue
+                                            pickerType = PickerType.Month
+                                        },
                                     )
-
                                     PickerType.Month -> MonthView(
                                         selectedMonth = selectedMonth,
                                         displayedYear = selectedYear,
@@ -444,24 +394,17 @@ fun CalendarScreen(
                                 CancelActionButton(
                                     text = strings.cancel,
                                     colors = colors,
-                                    onClick = { onDismiss(true) } // ✅ onClick صریح
+                                    onClick = { onDismiss(true) }
                                 )
-
                                 ConfirmActionButton(
                                     text = strings.confirm,
                                     enabled = isSelectionEnabled,
                                     colors = colors,
-                                    onClick = { // ✅ onClick صریح
+                                    onClick = {
                                         val confirmed = selectedDate ?: return@ConfirmActionButton
                                         if (!constraints.isDateSelectable(confirmed)) return@ConfirmActionButton
-
                                         onDateSelected(confirmed)
-                                        onConfirm(
-                                            config.dateFormatter.format(
-                                                confirmed,
-                                                config.digitMode
-                                            )
-                                        )
+                                        onConfirm(config.dateFormatter.format(confirmed, config.digitMode))
                                         onDismiss(true)
                                     }
                                 )
@@ -470,188 +413,6 @@ fun CalendarScreen(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun CalendarDialogHeader(
-    title: String,
-    subtitle: String,
-    monthLabel: String,
-    yearLabel: String,
-    colors: DatePickerColors,
-    hasSelection: Boolean,
-) {
-    val accentMid = remember(colors.brandViolet, colors.brandTeal) { CalendarColorTokens.MidSheen }
-    val headerGradient = remember(colors.brandViolet, accentMid, colors.brandTeal) {
-        Brush.linearGradient(
-            colorStops = arrayOf(
-                0f to colors.brandViolet,
-                0.55f to accentMid,
-                1f to colors.brandTeal,
-            ),
-            start = Offset.Zero,
-            end = Offset(860f, 540f),
-        )
-    }
-    val headerBorder = remember(colors.brandViolet, colors.brandTeal) {
-        Brush.linearGradient(
-            colors = listOf(
-                colors.brandViolet.copy(alpha = 0.55f),
-                colors.brandTeal.copy(alpha = 0.48f),
-            )
-        )
-    }
-    val iconFrame = remember(colors.brandViolet, colors.brandTeal) {
-        Brush.linearGradient(
-            colors = listOf(
-                colors.brandViolet.copy(alpha = 0.8f),
-                colors.brandTeal.copy(alpha = 0.62f),
-            )
-        )
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp))
-            .background(headerGradient)
-            .drawBehind {
-                val glowRadius = size.maxDimension * 0.72f
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(colors.brandTeal.copy(alpha = 0.42f), Color.Transparent),
-                        center = Offset(size.width * 0.75f, size.height * 0.08f),
-                        radius = glowRadius,
-                    )
-                )
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(colors.brandViolet.copy(alpha = 0.38f), Color.Transparent),
-                        center = Offset(size.width * 0.18f, size.height * 0.92f),
-                        radius = glowRadius,
-                    )
-                )
-            }
-            .padding(horizontal = 28.dp, vertical = 30.dp)
-            .border(
-                BorderStroke(1.dp, headerBorder),
-                RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp),
-            )
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                val iconBackground = remember(colors.brandViolet, colors.brandTeal) {
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.16f),
-                            Color.White.copy(alpha = 0.08f),
-                        )
-                    )
-                }
-                Surface(
-                    modifier = Modifier.size(56.dp),
-                    shape = RoundedCornerShape(22.dp),
-                    color = Color.Transparent,
-                    tonalElevation = 0.dp,
-                    border = BorderStroke(1.dp, iconFrame),
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.CalendarMonth,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.95f),
-                        modifier = Modifier
-                            .background(iconBackground, RoundedCornerShape(22.dp))
-                            .padding(14.dp)
-                            .size(32.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(18.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        text = title.uppercase(),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = colors.subtitleTextColor,
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 1.4.sp,
-                    )
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = colors.titleTextColor,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 32.sp,
-                    )
-                }
-            }
-
-            val emphasisPrimary = if (hasSelection) 1f else 0.65f
-            val emphasisSecondary = if (hasSelection) 0.75f else 0.55f
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                HeaderGlassChip(
-                    label = monthLabel,
-                    colors = colors,
-                    emphasis = emphasisPrimary,
-                )
-                HeaderGlassChip(
-                    label = yearLabel,
-                    colors = colors,
-                    emphasis = emphasisSecondary,
-                )
-            }
-        }
-    }
-
-    Spacer(modifier = Modifier.height(20.dp))
-}
-
-@Composable
-private fun HeaderGlassChip(
-    label: String,
-    colors: DatePickerColors,
-    emphasis: Float,
-) {
-    val chipShape = RoundedCornerShape(22.dp)
-    val borderBrush = remember(colors.brandViolet, colors.brandTeal, emphasis) {
-        Brush.linearGradient(
-            colors = listOf(
-                colors.brandViolet.copy(alpha = 0.6f * emphasis + 0.22f),
-                colors.brandTeal.copy(alpha = 0.52f * emphasis + 0.18f),
-            )
-        )
-    }
-    val surfaceBrush = remember(colors.brandViolet, colors.brandTeal, emphasis) {
-        Brush.linearGradient(
-            colors = listOf(
-                Color.White.copy(alpha = 0.08f + 0.12f * emphasis),
-                Color.White.copy(alpha = 0.02f + 0.06f * emphasis),
-            )
-        )
-    }
-
-    Surface(
-        shape = chipShape,
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        border = BorderStroke(1.dp, borderBrush),
-        color = Color.Transparent,
-    ) {
-        Box(
-            modifier = Modifier
-                .background(surfaceBrush, chipShape)
-                .padding(horizontal = 18.dp, vertical = 8.dp)
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = Color.White.copy(alpha = 0.92f),
-                fontWeight = FontWeight.Medium,
-            )
         }
     }
 }
@@ -698,10 +459,7 @@ private fun SelectedDatePill(
         ) {
             val iconBackground = remember(colors.brandViolet, colors.brandTeal) {
                 Brush.radialGradient(
-                    colors = listOf(
-                        colors.brandTeal.copy(alpha = 0.4f),
-                        Color.Transparent,
-                    )
+                    colors = listOf(colors.brandTeal.copy(alpha = 0.4f), Color.Transparent)
                 )
             }
             Icon(
