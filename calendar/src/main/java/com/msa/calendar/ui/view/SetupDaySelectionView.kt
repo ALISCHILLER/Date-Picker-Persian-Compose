@@ -16,8 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -28,13 +27,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.msa.calendar.components.shadow
@@ -42,6 +44,7 @@ import com.msa.calendar.ui.CalendarEvent
 import com.msa.calendar.ui.DatePickerDefaults
 import com.msa.calendar.ui.DigitMode
 import com.msa.calendar.ui.WeekConfiguration
+import com.msa.calendar.ui.theme.CalendarColorTokens
 import com.msa.calendar.utils.FormatHelper
 import com.msa.calendar.utils.JlResDimens
 import com.msa.calendar.utils.SoleimaniDate
@@ -54,6 +57,7 @@ fun DayOfWeekView(
     year: Int,
     highlightedDate: SoleimaniDate?,
     highlightColor: Color,
+    highlightFill: Color,
     weekConfiguration: WeekConfiguration,
     digitMode: DigitMode,
     weekendLabelColor: Color,
@@ -67,20 +71,35 @@ fun DayOfWeekView(
     }
     val selectedDayValue = selectedDay
     val orderedWeekDays = remember(weekConfiguration) { weekConfiguration.orderedDays }
+    val brandViolet = CalendarColorTokens.Violet
+    val brandTeal = CalendarColorTokens.Teal
 
     Column {
+        // هدر روزهای هفته
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 18.dp),
             horizontalArrangement = Arrangement.SpaceAround,
         ) {
+            val baseStyle = MaterialTheme.typography.labelLarge
+            val resolvedBaseSize = if (baseStyle.fontSize != TextUnit.Unspecified) {
+                baseStyle.fontSize
+            } else {
+                14.sp
+            }
+            val weekendSize = (resolvedBaseSize.value + 1f).sp
+
             orderedWeekDays.forEach { day ->
                 val isWeekend = weekConfiguration.isWeekend(day)
                 Text(
-                    text = weekConfiguration.dayLabelFormatter.format(day),
+                    text = weekConfiguration.dayLabelFormatter.format(day).uppercase(),
                     color = if (isWeekend) weekendLabelColor else MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = baseStyle.copy(
+                        fontSize = if (isWeekend) weekendSize else resolvedBaseSize,
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = 0.6.sp,
+                    ),
                 )
             }
         }
@@ -95,14 +114,23 @@ fun DayOfWeekView(
                 verticalArrangement = Arrangement.Top,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                items(monthCells) { cell ->
+                itemsIndexed(
+                    items = monthCells,
+                    key = { index, cell ->
+                        cell.date?.let { date ->
+                            "date-${date.year}-${date.month}-${date.day}"
+                        } ?: "empty-$index"
+                    }
+                ) { _, cell ->
                     val candidateDate = cell.date
                     val isEnabled = candidateDate?.let(isDateEnabled) ?: false
+
                     val isSelected = isEnabled &&
                             candidateDate != null &&
                             selectedDayValue != null &&
                             candidateDate.day == selectedDayValue &&
                             candidateDate.month == month
+
                     val isToday = highlightedDate != null && candidateDate == highlightedDate
                     val isWeekend = candidateDate != null && weekConfiguration.isWeekendIndex(cell.weekdayIndex)
                     val event = candidateDate?.let(eventIndicator)
@@ -112,6 +140,7 @@ fun DayOfWeekView(
                         isToday && isEnabled -> highlightColor
                         else -> MaterialTheme.colorScheme.surfaceVariant
                     }
+                    val baseShape = RoundedCornerShape(14.dp)
 
                     Surface(
                         modifier = Modifier
@@ -125,20 +154,18 @@ fun DayOfWeekView(
                                 spread = 3.dp,
                                 blurRadius = 10.dp,
                             )
-                            .let { modifier ->
+                            .let { m ->
                                 if (isToday && !isSelected && isEnabled) {
-                                    modifier.border(
+                                    m.border(
                                         BorderStroke(
                                             width = JlResDimens.dp1,
                                             brush = SolidColor(highlightColor),
                                         ),
                                         shape = RoundedCornerShape(JlResDimens.dp10),
                                     )
-                                } else {
-                                    modifier
-                                }
+                                } else m
                             }
-                            .clip(RoundedCornerShape(14.dp))
+                            .clip(baseShape)
                             .clickable(
                                 enabled = isEnabled && candidateDate != null,
                                 onClick = {
@@ -147,20 +174,43 @@ fun DayOfWeekView(
                                     onDaySelected(selected.day)
                                 },
                             ),
-                        color = when {
-                            !isEnabled -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
-                            isSelected -> MaterialTheme.colorScheme.primary
-                            isWeekend -> weekendLabelColor.copy(alpha = 0.12f)
-                            else -> MaterialTheme.colorScheme.surface
-                        },
+                        color = Color.Transparent,
                     ) {
+                        val selectedBrush = remember(brandViolet, brandTeal) {
+                            Brush.linearGradient(
+                                listOf(
+                                    brandViolet.copy(alpha = 0.96f),
+                                    brandTeal.copy(alpha = 0.86f)
+                                )
+                            )
+                        }
+                        val weekendBackground = weekendLabelColor.copy(alpha = 0.12f)
+                        val todayBackground = highlightFill
+                        val defaultBackground = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+                        val tileColor = when {
+                            !isEnabled -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                            isSelected -> Color.Transparent
+                            isToday && isEnabled -> todayBackground
+                            isWeekend -> weekendBackground
+                            else -> defaultBackground
+                        }
+                        val backgroundBrush: Brush = if (isSelected) selectedBrush else SolidColor(tileColor)
+
+                        // رنگی که به CompositionLocal نیاز دارد را بیرون از drawBehind بگیرید
+                        val ringSurface = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+
                         Box(
                             Modifier
                                 .fillMaxSize()
+                                .background(
+                                    brush = backgroundBrush,
+                                    shape = baseShape
+                                )
                                 .semantics {
                                     if (event?.label != null) contentDescription = event.label
                                 },
                         ) {
+                            val labelStyle = MaterialTheme.typography.bodyLarge
                             Text(
                                 text = cell.dayOfMonth?.let { day ->
                                     when (digitMode) {
@@ -168,7 +218,11 @@ fun DayOfWeekView(
                                         DigitMode.Latin -> day.toString()
                                     }
                                 } ?: "",
-                                style = MaterialTheme.typography.bodyLarge,
+                                style = labelStyle.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = if (isWeekend) 19.sp else 18.sp,
+                                    letterSpacing = 0.2.sp,
+                                ),
                                 color = when {
                                     isSelected -> MaterialTheme.colorScheme.onPrimary
                                     !isEnabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
@@ -176,8 +230,6 @@ fun DayOfWeekView(
                                     isWeekend -> weekendLabelColor
                                     else -> MaterialTheme.colorScheme.onSurface
                                 },
-                                fontSize = 20.sp,
-                                fontFamily = FontFamily.Cursive,
                                 modifier = Modifier.align(Alignment.Center),
                             )
 
@@ -186,9 +238,27 @@ fun DayOfWeekView(
                                     modifier = Modifier
                                         .align(Alignment.BottomCenter)
                                         .padding(bottom = 6.dp)
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .background(event.color),
+                                        .size(8.dp)
+                                        .drawBehind {
+                                            val radius = size.minDimension / 2f
+                                            drawCircle(color = event.color, radius = radius)
+
+                                            val firstRing = radius - 1.dp.toPx()
+                                            if (firstRing > 0f) {
+                                                drawCircle(
+                                                    color = ringSurface,
+                                                    radius = firstRing
+                                                )
+                                            }
+
+                                            val coreRadius = firstRing - 1.dp.toPx()
+                                            if (coreRadius > 0f) {
+                                                drawCircle(
+                                                    color = event.color.copy(alpha = 0.7f),
+                                                    radius = coreRadius
+                                                )
+                                            }
+                                        }
                                 )
                             }
                         }
@@ -209,6 +279,7 @@ private fun DayOfWeekViewPreview() {
         year = 1403,
         highlightedDate = SoleimaniDate(1403, 5, 8),
         highlightColor = colors.todayOutline,
+        highlightFill = colors.todayButtonBackground,
         weekConfiguration = WeekConfiguration(),
         digitMode = DigitMode.Persian,
         weekendLabelColor = colors.weekendLabelColor,

@@ -1,7 +1,6 @@
 package com.msa.persioncalendar.showcase
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -39,7 +38,7 @@ import com.msa.calendar.utils.toSoleimaniDate
 import com.msa.persioncalendar.R
 import java.time.DayOfWeek
 import java.util.LinkedHashSet
-import androidx.compose.material3.ColorScheme
+import com.msa.calendar.ui.theme.CalendarColorTokens
 import com.msa.calendar.ui.DatePickerColors
 
 @Composable
@@ -180,7 +179,6 @@ fun rememberCalendarShowcaseUiState(
 
 
     val isDarkTheme = isSystemInDarkTheme()
-    val colorScheme = MaterialTheme.colorScheme
     val weekConfiguration = rememberWeekConfiguration(state)
     val constraints = rememberConstraints(state, weekConfiguration)
     val upcomingMilestone = rememberUpcomingMilestone(state.today)
@@ -196,7 +194,7 @@ fun rememberCalendarShowcaseUiState(
     val monthFormatter = rememberMonthFormatter(state)
     val yearFormatter = rememberYearFormatter(state)
     val strings = rememberDatePickerStrings(state)
-    val colors = rememberDatePickerColors(isDarkTheme, colorScheme)
+    val colors = rememberDatePickerColors(isDarkTheme)
     val dialogConfig = rememberDialogConfig(
         state = state,
         strings = strings,
@@ -375,40 +373,42 @@ private fun rememberDatePickerStrings(state: CalendarShowcaseState): DatePickerS
 @Composable
 private fun rememberDatePickerColors(
     isDarkTheme: Boolean,
-    colorScheme: ColorScheme,
 ): DatePickerColors {
-    return remember(isDarkTheme, colorScheme) {
+    val brandViolet = CalendarColorTokens.Violet
+    val brandTeal = CalendarColorTokens.Teal
+    val weekendAccent = CalendarColorTokens.Weekend
+    return remember(isDarkTheme, brandViolet, brandTeal, weekendAccent) {
         if (isDarkTheme) {
-            DatePickerDefaults.darkColors(
-                gradientStart = colorScheme.primary,
-                gradientEnd = colorScheme.tertiary,
-                containerColor = colorScheme.surface,
-                titleTextColor = colorScheme.onPrimary,
-                subtitleTextColor = colorScheme.onPrimary.copy(alpha = 0.88f),
-                controlIconColor = colorScheme.onPrimary.copy(alpha = 0.85f),
-                todayButtonBackground = colorScheme.primary.copy(alpha = 0.35f),
-                todayButtonContent = colorScheme.onPrimary,
-                confirmButtonBackground = colorScheme.primary,
-                confirmButtonContent = colorScheme.onPrimary,
-                cancelButtonContent = colorScheme.onPrimary.copy(alpha = 0.9f),
-                todayOutline = colorScheme.primary.copy(alpha = 0.85f),
-                weekendLabelColor = colorScheme.tertiary.copy(alpha = 0.9f),
+            DatePickerDefaults.colors(
+                brandViolet = brandViolet,
+                brandTeal = brandTeal,
+                containerColor = CalendarColorTokens.BaseDark,
+                titleTextColor = Color.White.copy(alpha = 0.95f),
+                subtitleTextColor = Color.White.copy(alpha = 0.92f),
+                controlIconColor = Color.White.copy(alpha = 0.94f),
+                todayButtonBackground = brandTeal.copy(alpha = 0.32f),
+                todayButtonContent = Color.White.copy(alpha = 0.94f),
+                confirmButtonBackground = brandViolet.copy(alpha = 0.95f),
+                confirmButtonContent = Color.White,
+                cancelButtonContent = CalendarColorTokens.Teal.copy(alpha = 0.92f),
+                todayOutline = brandViolet.copy(alpha = 0.82f),
+                weekendLabelColor = weekendAccent,
             )
         } else {
-            DatePickerDefaults.lightColors(
-                gradientStart = colorScheme.primary,
-                gradientEnd = colorScheme.tertiary,
-                containerColor = colorScheme.surface,
-                titleTextColor = colorScheme.onPrimary,
-                subtitleTextColor = colorScheme.onPrimary.copy(alpha = 0.88f),
-                controlIconColor = colorScheme.onPrimary.copy(alpha = 0.8f),
-                todayButtonBackground = colorScheme.primary.copy(alpha = 0.22f),
-                todayButtonContent = colorScheme.onPrimary,
-                confirmButtonBackground = colorScheme.primary,
-                confirmButtonContent = colorScheme.onPrimary,
-                cancelButtonContent = colorScheme.primary.copy(alpha = 0.85f),
-                todayOutline = colorScheme.primary.copy(alpha = 0.9f),
-                weekendLabelColor = colorScheme.tertiary,
+            DatePickerDefaults.colors(
+                brandViolet = brandViolet,
+                brandTeal = brandTeal,
+                containerColor = CalendarColorTokens.BaseLight,
+                titleTextColor = Color.White.copy(alpha = 0.95f),
+                subtitleTextColor = Color.White.copy(alpha = 0.92f),
+                controlIconColor = Color.White.copy(alpha = 0.94f),
+                todayButtonBackground = brandTeal.copy(alpha = 0.24f),
+                todayButtonContent = CalendarColorTokens.TextPrimary,
+                confirmButtonBackground = brandViolet.copy(alpha = 0.95f),
+                confirmButtonContent = Color.White,
+                cancelButtonContent = brandViolet.copy(alpha = 0.9f),
+                todayOutline = brandViolet.copy(alpha = 0.78f),
+                weekendLabelColor = weekendAccent,
             )
         }
     }

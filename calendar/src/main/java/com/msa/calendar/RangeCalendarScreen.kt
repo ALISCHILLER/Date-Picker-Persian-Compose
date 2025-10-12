@@ -1,7 +1,14 @@
 package com.msa.calendar
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -14,24 +21,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialogDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -44,13 +50,13 @@ import com.msa.calendar.ui.view.MonthView
 import com.msa.calendar.ui.view.YearsView
 import com.msa.calendar.utils.PersionCalendar
 import com.msa.calendar.utils.PickerType
-import com.msa.calendar.utils.*
+import com.msa.calendar.utils.SoleimaniDate
+import com.msa.calendar.utils.addLeadingZero
+import com.msa.calendar.utils.adjustDayIfOutOfBounds
 import com.msa.calendar.ui.DatePickerQuickAction
 import com.msa.calendar.utils.FormatHelper
 import com.msa.calendar.utils.toPersianNumber
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.platform.LocalLayoutDirection
+import kotlin.math.roundToInt
 
 @Composable
 fun RangeCalendarScreen(
@@ -77,6 +83,7 @@ fun RangeCalendarScreen(
             else -> emptyList()
         }
     }
+
     val initialStart = remember(initialStartDate, constraints) {
         val desired = initialStartDate ?: todayDate
         constraints.nearestValidOrNull(desired)
@@ -113,6 +120,12 @@ fun RangeCalendarScreen(
     val colors = config.colors
     val shape: Shape = config.containerShape
 
+    val highlightableToday = remember(config.highlightToday, constraints) {
+        if (!config.highlightToday) return@remember null
+        if (!constraints.isDateSelectable(todayDate)) return@remember null
+        todayDate
+    }
+
     fun updateSelectionFromDate(target: SoleimaniDate) {
         visibleMonth = target.month.coerceIn(1, 12)
         visibleYear = target.year
@@ -122,15 +135,17 @@ fun RangeCalendarScreen(
 
     Dialog(onDismissRequest = { onDismiss(true) }) {
         Box(modifier = Modifier.fillMaxSize()) {
+            // بک‌دراپ کلیکی برای بستن
             Box(
                 modifier = Modifier
-                    .matchParentSize()
+                    .fillMaxSize()
                     .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.35f))
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
                     ) { onDismiss(true) }
             )
+
             Surface(
                 modifier = modifier
                     .align(Alignment.Center)
@@ -146,222 +161,238 @@ fun RangeCalendarScreen(
                     LocalLayoutDirection provides weekConfiguration.layoutDirection,
                 ) {
                     Column(
-                        modifier = Modifier
-                            .animateContentSize()
+                        modifier = Modifier.animateContentSize()
                     ) {
-                    val monthLabel = remember(visibleMonth, config.monthFormatter, config.digitMode) {
-                        config.monthFormatter.format(visibleMonth, config.digitMode)
-                    }
-                    val yearLabel = remember(visibleYear, config.yearFormatter, config.digitMode) {
-                        config.yearFormatter.format(visibleYear, config.digitMode)
-                    }
-                    val effectiveYearRange = remember(
-                        config.yearRange,
-                        visibleYear,
-                        todayYear,
-                        startDate,
-                        endDate,
-                        constraints,
-                    ) {
-                        val candidates = mutableListOf(
-                            config.yearRange.first,
-                            config.yearRange.last,
+                        val monthLabel = remember(visibleMonth, config.monthFormatter, config.digitMode) {
+                            config.monthFormatter.format(visibleMonth, config.digitMode)
+                        }
+                        val yearLabel = remember(visibleYear, config.yearFormatter, config.digitMode) {
+                            config.yearFormatter.format(visibleYear, config.digitMode)
+                        }
+                        val effectiveYearRange = remember(
+                            config.yearRange,
                             visibleYear,
                             todayYear,
+                            startDate,
+                            endDate,
+                            constraints,
+                        ) {
+                            val candidates = mutableListOf(
+                                config.yearRange.first,
+                                config.yearRange.last,
+                                visibleYear,
+                                todayYear,
+                            )
+                            startDate?.let { candidates += it.year }
+                            endDate?.let { candidates += it.year }
+                            constraints.minDate?.let { candidates += it.year }
+                            constraints.maxDate?.let { candidates += it.year }
+                            val minYear = candidates.minOrNull() ?: visibleYear
+                            val maxYear = candidates.maxOrNull() ?: visibleYear
+                            minYear..maxYear
+                        }
+
+                        CalendarView(
+                            monthLabel = monthLabel,
+                            yearLabel = yearLabel,
+                            pickerTypeChang = { pickerType = it },
+                            pickerType = pickerType,
+                            onPreviousMonth = {
+                                if (visibleMonth == 1) {
+                                    visibleMonth = 12
+                                    visibleYear -= 1
+                                } else {
+                                    visibleMonth -= 1
+                                }
+                            },
+                            onNextMonth = {
+                                if (visibleMonth == 12) {
+                                    visibleMonth = 1
+                                    visibleYear += 1
+                                } else {
+                                    visibleMonth += 1
+                                }
+                            },
+                            title = strings.title,
+                            subtitle = buildRangeSubtitle(strings, startDate, endDate, config.digitMode),
+                            strings = strings,
+                            colors = colors,
+                            quickActions = quickActions,
+                            onQuickActionClick = quick@{ action ->
+                                when (action) {
+                                    DatePickerQuickAction.Today -> {
+                                        val resolvedToday = constraints.nearestValidOrNull(todayDate) ?: todayDate
+                                        updateSelectionFromDate(resolvedToday)
+                                        startDate = resolvedToday
+                                        endDate = resolvedToday
+                                    }
+                                    is DatePickerQuickAction.ClearSelection -> {
+                                        startDate = null
+                                        endDate = null
+                                        pendingDay = null
+                                        pickerType = PickerType.Day
+                                    }
+                                    is DatePickerQuickAction.JumpToDate -> {
+                                        val target = action.targetDateProvider() ?: return@quick
+                                        val resolved = constraints.nearestValidOrNull(target) ?: target
+                                        updateSelectionFromDate(resolved)
+                                        startDate = resolved
+                                        endDate = if (constraints.isDateSelectable(resolved)) resolved else null
+                                    }
+                                }
+                            },
+                            layoutDirection = weekConfiguration.layoutDirection,
                         )
-                        startDate?.let { candidates += it.year }
-                        endDate?.let { candidates += it.year }
-                        constraints.minDate?.let { candidates += it.year }
-                        constraints.maxDate?.let { candidates += it.year }
-                        val minYear = candidates.minOrNull() ?: visibleYear
-                        val maxYear = candidates.maxOrNull() ?: visibleYear
-                        minYear..maxYear
-                    }
 
-                    CalendarView(
-                        monthLabel = monthLabel,
-                        yearLabel = yearLabel,
-                        pickerTypeChang = { pickerType = it },
-                        pickerType = pickerType,
-                        onPreviousMonth = {
-                            if (visibleMonth == 1) {
-                                visibleMonth = 12
-                                visibleYear -= 1
-                            } else {
-                                visibleMonth -= 1
+                        Crossfade(targetState = pickerType, label = "rangePicker") { state ->
+                            when (state) {
+                                PickerType.Day -> {
+                                    // نسخه بدون LocalMotionDurationScale
+                                    val transitionDuration = 220
+                                    val fadeDuration = 180
+
+                                    AnimatedContent(
+                                        targetState = visibleYear to visibleMonth,
+                                        transitionSpec = {
+                                            val direction = when {
+                                                targetState.first > initialState.first -> 1
+                                                targetState.first < initialState.first -> -1
+                                                targetState.second > initialState.second -> 1
+                                                targetState.second < initialState.second -> -1
+                                                else -> 1
+                                            }
+                                            (slideInVertically(
+                                                animationSpec = tween(durationMillis = transitionDuration)
+                                            ) { height -> direction * (height / 5) } +
+                                                    fadeIn(animationSpec = tween(durationMillis = fadeDuration))) togetherWith
+                                                    (slideOutVertically(
+                                                        animationSpec = tween(durationMillis = transitionDuration)
+                                                    ) { height -> -direction * (height / 5) } +
+                                                            fadeOut(animationSpec = tween(durationMillis = fadeDuration)))
+                                        },
+                                        label = "rangeMonthContent"
+                                    ) { (year, month) ->
+                                        val highlightForMonth = highlightableToday?.takeIf {
+                                            it.year == year && it.month == month
+                                        }
+                                        DayOfWeekRangeView(
+                                            month = month,
+                                            selectedDay = pendingDay,
+                                            year = year,
+                                            startDate = startDate,
+                                            endDate = endDate,
+                                            weekConfiguration = weekConfiguration,
+                                            digitMode = config.digitMode,
+                                            weekendLabelColor = colors.weekendLabelColor,
+                                            highlightColor = colors.todayOutline,
+                                            highlightFill = colors.todayButtonBackground,
+                                            highlightedDate = highlightForMonth,
+                                            eventIndicator = config.eventIndicator,
+                                            onDaySelected = { pendingDay = it },
+                                            setStartDate = { startDate = it },
+                                            setEndDate = { endDate = it },
+                                            isDateEnabled = { constraints.isDateSelectable(it) },
+                                            changeSelectedPart = {}
+                                        )
+                                    }
+                                }
+
+                                PickerType.Year -> YearsView(
+                                    selectedYear = visibleYear,
+                                    digitMode = config.digitMode,
+                                    yearFormatter = config.yearFormatter,
+                                    yearRange = effectiveYearRange,
+                                    colors = colors,
+                                    onYearClick = { selected ->
+                                        visibleYear = selected
+                                    }
+                                )
+
+                                PickerType.Month -> MonthView(
+                                    selectedMonth = visibleMonth,
+                                    displayedYear = visibleYear,
+                                    digitMode = config.digitMode,
+                                    monthFormatter = config.monthFormatter,
+                                    colors = colors,
+                                    onMonthSelected = { selectedMonth ->
+                                        visibleMonth = selectedMonth
+                                        pickerType = PickerType.Day
+                                    },
+                                )
                             }
-                        },
-                        onNextMonth = {
-                            if (visibleMonth == 12) {
-                                visibleMonth = 1
-                                visibleYear += 1
-                            } else {
-                                visibleMonth += 1
+                        }
+
+                        val isRangeSelectable = startDate != null && endDate != null &&
+                                startDate?.let { constraints.isDateSelectable(it) } == true &&
+                                endDate?.let { constraints.isDateSelectable(it) } == true
+
+                        val isRangeWithinLimit = if (startDate != null && endDate != null) {
+                            constraints.isRangeWithinLimit(startDate!!, endDate!!)
+                        } else {
+                            true
+                        }
+                        val isRangeComplete = isRangeSelectable && isRangeWithinLimit
+
+                        if (!isRangeWithinLimit && constraints.maxRangeLength != null && startDate != null && endDate != null) {
+                            val limitText = when (config.digitMode) {
+                                DigitMode.Persian -> FormatHelper.toPersianNumber(constraints.maxRangeLength.toString())
+                                DigitMode.Latin -> constraints.maxRangeLength.toString()
                             }
-                        },
-                        title = strings.title,
-                        subtitle = buildRangeSubtitle(strings, startDate, endDate, config.digitMode),
-                        strings = strings,
-                        colors = colors,
-                        quickActions = quickActions,
-                        onQuickActionClick = quick@ { action ->
-                            when (action) {
-                                DatePickerQuickAction.Today -> {
-                                    val resolvedToday = constraints.nearestValidOrNull(todayDate) ?: todayDate
-                                    updateSelectionFromDate(resolvedToday)
-                                    startDate = resolvedToday
-                                    endDate = resolvedToday
-                                }
-
-                                is DatePickerQuickAction.ClearSelection -> {
-                                    startDate = null
-                                    endDate = null
-                                    pendingDay = null
-                                    pickerType = PickerType.Day
-                                }
-
-                                is DatePickerQuickAction.JumpToDate -> {
-                                    val target = action.targetDateProvider() ?: return@quick
-                                    val resolved = constraints.nearestValidOrNull(target) ?: target
-                                    updateSelectionFromDate(resolved)
-                                    startDate = resolved
-                                    endDate = if (constraints.isDateSelectable(resolved)) resolved else null
-                                }
-                            }
-                        },
-                        layoutDirection = weekConfiguration.layoutDirection,
-                    )
-
-                    Crossfade(targetState = pickerType, label = "") { state ->
-                        when (state) {
-                            PickerType.Day -> DayOfWeekRangeView(
-                                month = visibleMonth,
-                                selectedDay = pendingDay,
-                                year = visibleYear,
-                                startDate = startDate,
-                                endDate = endDate,
-                                weekConfiguration = weekConfiguration,
-                                digitMode = config.digitMode,
-                                weekendLabelColor = colors.weekendLabelColor,
-                                highlightColor = colors.todayOutline,
-                                eventIndicator = config.eventIndicator,
-                                onDaySelected = { pendingDay = it },
-                                setStartDate = { startDate = it },
-                                setEndDate = { endDate = it },
-                                isDateEnabled = { constraints.isDateSelectable(it) },
-                                changeSelectedPart = {}
-                            )
-
-                            PickerType.Year -> YearsView(
-                                selectedYear = visibleYear,
-                                digitMode = config.digitMode,
-                                yearFormatter = config.yearFormatter,
-                                yearRange = effectiveYearRange,
-                                colors = colors,
-                                onYearClick = { selected ->
-                                    visibleYear = selected
-                                }
-                            )
-
-                            PickerType.Month -> MonthView(
-                                selectedMonth = visibleMonth,
-                                displayedYear = visibleYear,
-                                digitMode = config.digitMode,
-                                monthFormatter = config.monthFormatter,
-                                colors = colors,
-                                onMonthSelected = { selectedMonth ->
-                                    visibleMonth = selectedMonth
-                                    pickerType = PickerType.Day
-                                },
-
+                            val message = strings.rangeLimitMessage.format(limitText)
+                            Text(
+                                text = message,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 24.dp, vertical = 4.dp),
                             )
                         }
-                    }
 
-                    val isRangeSelectable = startDate != null && endDate != null &&
-                            startDate?.let { constraints.isDateSelectable(it) } == true &&
-                            endDate?.let { constraints.isDateSelectable(it) } == true
-
-                    val isRangeWithinLimit = if (startDate != null && endDate != null) {
-                        constraints.isRangeWithinLimit(startDate!!, endDate!!)
-                    } else {
-                        true
-                    }
-                    val isRangeComplete = isRangeSelectable && isRangeWithinLimit
-
-                    if (!isRangeWithinLimit && constraints.maxRangeLength != null && startDate != null && endDate != null) {
-                        val limitText = when (config.digitMode) {
-                            DigitMode.Persian -> FormatHelper.toPersianNumber(constraints.maxRangeLength.toString())
-                            DigitMode.Latin -> constraints.maxRangeLength.toString()
-                        }
-                        val message = strings.rangeLimitMessage.format(limitText)
-                        Text(
-                            text = message,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
+                        HorizontalDivider(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 24.dp, vertical = 4.dp),
+                                .padding(top = 8.dp),
+                            thickness = 1.dp,
+                            color = colors.cancelButtonContent.copy(alpha = 0.12f)
                         )
-                    }
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        thickness = 1.dp,
-                        color = colors.cancelButtonContent.copy(alpha = 0.12f)
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextButton(
-                            onClick = { onDismiss(true) },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.textButtonColors(
-                                containerColor = colors.todayButtonBackground,
-                                contentColor = colors.cancelButtonContent
-                            )
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp, vertical = 18.dp),
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = strings.cancel)
-                        }
+                            CancelActionButton(
+                                text = strings.cancel,
+                                colors = colors,
+                                onClick = { onDismiss(true) } // ✅ onClick مشخص
+                            )
 
-
-                        Button(
-                            enabled = isRangeComplete,
-                            onClick = {
-                                val start = startDate ?: return@Button
-                                val end = endDate ?: return@Button
-                                val ordered = if (start <= end) start to end else end to start
-                                if (!constraints.isDateSelectable(ordered.first) || !constraints.isDateSelectable(ordered.second)) {
-                                    return@Button
-                                }
-                                onRangeSelected(ordered.first, ordered.second)
-                                setDate(
-                                    listOf(
-                                        ordered.first.toMap(usePersianDigits = config.digitMode == DigitMode.Persian),
-                                        ordered.second.toMap(usePersianDigits = config.digitMode == DigitMode.Persian)
+                            ConfirmActionButton(
+                                text = strings.confirm,
+                                enabled = isRangeComplete,
+                                colors = colors,
+                                onClick = { // ✅ onClick مشخص
+                                    val start = startDate ?: return@ConfirmActionButton
+                                    val end = endDate ?: return@ConfirmActionButton
+                                    val ordered = if (start <= end) start to end else end to start
+                                    if (!constraints.isDateSelectable(ordered.first) || !constraints.isDateSelectable(ordered.second)) {
+                                        return@ConfirmActionButton
+                                    }
+                                    onRangeSelected(ordered.first, ordered.second)
+                                    setDate(
+                                        listOf(
+                                            ordered.first.toMap(usePersianDigits = config.digitMode == DigitMode.Persian),
+                                            ordered.second.toMap(usePersianDigits = config.digitMode == DigitMode.Persian)
+                                        )
                                     )
-                                )
-                                onDismiss(true)
-                            },
-                            modifier = Modifier.weight(1.2f),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colors.confirmButtonBackground,
-                                contentColor = colors.confirmButtonContent,
-                                disabledContainerColor = colors.confirmButtonBackground.copy(alpha = 0.3f),
-                                disabledContentColor = colors.confirmButtonContent.copy(alpha = 0.4f)
+                                    onDismiss(true)
+                                }
                             )
-                        ) {
-                            Text(text = strings.confirm)
                         }
                     }
-                }
                 }
             }
         }

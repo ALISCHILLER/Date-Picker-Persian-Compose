@@ -1,6 +1,5 @@
 package com.msa.calendar.ui.view
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,8 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -30,21 +28,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isUnspecified
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.msa.calendar.components.shadow
 import com.msa.calendar.ui.CalendarEvent
 import com.msa.calendar.ui.DatePickerDefaults
 import com.msa.calendar.ui.DigitMode
 import com.msa.calendar.ui.WeekConfiguration
+import com.msa.calendar.ui.theme.CalendarColorTokens
 import com.msa.calendar.utils.FormatHelper
 import com.msa.calendar.utils.JlResDimens
 import com.msa.calendar.utils.SoleimaniDate
@@ -61,6 +63,8 @@ fun DayOfWeekRangeView(
     digitMode: DigitMode,
     weekendLabelColor: Color,
     highlightColor: Color,
+    highlightFill: Color,
+    highlightedDate: SoleimaniDate?,
     eventIndicator: (SoleimaniDate) -> CalendarEvent?,
     onDaySelected: (Int?) -> Unit,
     setStartDate: (SoleimaniDate?) -> Unit,
@@ -73,20 +77,33 @@ fun DayOfWeekRangeView(
     }
     val selectedDayValue = selectedDay
     val orderedWeekDays = remember(weekConfiguration) { weekConfiguration.orderedDays }
+    val brandViolet = CalendarColorTokens.Violet
+    val brandTeal = CalendarColorTokens.Teal
 
     Column {
+        // Header: week day labels
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 18.dp),
             horizontalArrangement = Arrangement.SpaceAround,
         ) {
+            val baseStyle = MaterialTheme.typography.labelLarge
+            // امن در برابر isUnspecified: به Float تبدیل سپس sp
+            val baseSizePx = if (baseStyle.fontSize.isUnspecified) 14f else baseStyle.fontSize.value
+
             orderedWeekDays.forEach { day ->
                 val isWeekend = weekConfiguration.isWeekend(day)
+                val labelSize = if (isWeekend) (baseSizePx + 1f).sp else baseSizePx.sp
+
                 Text(
-                    text = weekConfiguration.dayLabelFormatter.format(day),
+                    text = weekConfiguration.dayLabelFormatter.format(day).uppercase(),
                     color = if (isWeekend) weekendLabelColor else MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = baseStyle.copy(
+                        fontSize = labelSize,
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = 0.6.sp,
+                    ),
                 )
             }
         }
@@ -101,64 +118,101 @@ fun DayOfWeekRangeView(
                 verticalArrangement = Arrangement.Top,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                items(monthCells) { cell ->
+                itemsIndexed(
+                    items = monthCells,
+                    key = { index, cell ->
+                        cell.date?.let { date ->
+                            "date-${date.year}-${date.month}-${date.day}"
+                        } ?: "empty-$index"
+                    }
+                ) { _, cell ->
                     val candidate = cell.date
                     val isEnabled = candidate?.let(isDateEnabled) ?: false
+
                     val isWithinSelection =
                         candidate != null && startDate != null && endDate != null &&
                                 candidate.isWithin(startDate, endDate)
+
                     val isStart = candidate != null && startDate != null && candidate == startDate
                     val isEnd = candidate != null && endDate != null && candidate == endDate
+
                     val isPendingSelection =
                         endDate == null && selectedDayValue != null &&
                                 candidate?.day == selectedDayValue && candidate?.month == month
+
                     val isWeekend =
                         candidate != null && weekConfiguration.isWeekendIndex(cell.weekdayIndex)
+
+                    val isToday = highlightedDate != null && candidate == highlightedDate
                     val event = candidate?.let(eventIndicator)
 
-                    val backgroundColor = when {
-                        isStart || isEnd || isPendingSelection -> MaterialTheme.colorScheme.primary
-                        isWithinSelection -> MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
-                        !isEnabled -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
-                        isWeekend -> weekendLabelColor.copy(alpha = 0.12f)
-                        else -> MaterialTheme.colorScheme.surface
+                    val selectionBrush = remember(brandViolet, brandTeal) {
+                        Brush.linearGradient(
+                            listOf(
+                                brandViolet.copy(alpha = 0.96f),
+                                brandTeal.copy(alpha = 0.86f)
+                            )
+                        )
                     }
+                    val rangeHighlight = brandTeal.copy(alpha = 0.18f)
+                    val weekendBackground = weekendLabelColor.copy(alpha = 0.12f)
+                    val restingTile = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+                    val disabledTile = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+
+                    val backgroundColor = when {
+                        !isEnabled -> disabledTile
+                        isWithinSelection -> rangeHighlight
+                        isToday && isEnabled -> highlightFill
+                        isWeekend -> weekendBackground
+                        else -> restingTile
+                    }
+
                     val contentColor = when {
                         isStart || isEnd || isPendingSelection -> MaterialTheme.colorScheme.onPrimary
                         !isEnabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        isToday && isEnabled -> highlightColor
                         isWeekend -> weekendLabelColor
                         else -> MaterialTheme.colorScheme.onSurface
                     }
+
                     val emphasizeSelection = isStart || isEnd || isPendingSelection
-                    val shadowColor = if (emphasizeSelection) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant
+                    val shadowColor = when {
+                        emphasizeSelection -> MaterialTheme.colorScheme.primary
+                        isToday && isEnabled -> highlightColor
+                        else -> MaterialTheme.colorScheme.surfaceVariant
                     }
+
+                    val baseShape = RoundedCornerShape(14.dp)
+                    val selectionBorder = remember(brandViolet, brandTeal) {
+                        Brush.linearGradient(
+                            listOf(
+                                brandViolet.copy(alpha = 0.84f),
+                                brandTeal.copy(alpha = 0.72f)
+                            )
+                        )
+                    }
+                    val restingBorder = SolidColor(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    val todayBorder = SolidColor(highlightColor)
 
                     Surface(
                         modifier = Modifier
                             .aspectRatio(1f, true)
                             .padding(4.dp)
-                            .shadow(
-                                color = if (isEnabled) shadowColor else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                borderRadius = 10.dp,
-                                offsetX = 0.dp,
-                                offsetY = 3.dp,
-                                spread = 3.dp,
-                                blurRadius = 10.dp,
+                            .shadow( // استفاده از shadow استاندارد Compose
+                                elevation = 10.dp,
+                                shape = RoundedCornerShape(JlResDimens.dp10),
+                                clip = false
                             )
                             .border(
-                                brush = Brush.verticalGradient(
-                                    listOf(
-                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
-                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-                                    )
-                                ),
+                                brush = when {
+                                    emphasizeSelection -> selectionBorder
+                                    isToday && isEnabled -> todayBorder
+                                    else -> restingBorder
+                                },
                                 width = JlResDimens.dp1,
                                 shape = RoundedCornerShape(JlResDimens.dp10),
                             )
-                            .clip(RoundedCornerShape(14.dp))
+                            .clip(baseShape)
                             .clickable(
                                 enabled = isEnabled && candidate != null,
                                 onClick = {
@@ -174,17 +228,27 @@ fun DayOfWeekRangeView(
                                     )
                                 }
                             ),
-                        color = backgroundColor,
+                        color = Color.Transparent,
                     ) {
+                        val backgroundBrush: Brush = when {
+                            emphasizeSelection -> selectionBrush
+                            isWithinSelection -> SolidColor(rangeHighlight)
+                            !isEnabled -> SolidColor(disabledTile)
+                            else -> SolidColor(backgroundColor)
+                        }
+
                         Box(
                             Modifier
                                 .fillMaxSize()
+                                .background(backgroundBrush, baseShape)
                                 .semantics {
                                     if (event?.label != null) {
                                         contentDescription = event.label
                                     }
                                 },
                         ) {
+                            val labelStyle = MaterialTheme.typography.bodyLarge
+
                             Text(
                                 text = cell.dayOfMonth?.let { day ->
                                     when (digitMode) {
@@ -192,28 +256,41 @@ fun DayOfWeekRangeView(
                                         DigitMode.Latin -> day.toString()
                                     }
                                 } ?: "",
-                                style = MaterialTheme.typography.bodyLarge,
+                                style = labelStyle.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = if (isWeekend) 19.sp else 18.sp,
+                                    letterSpacing = 0.2.sp,
+                                ),
                                 color = contentColor,
-                                fontSize = 20.sp,
-                                fontFamily = FontFamily.Cursive,
                                 modifier = Modifier.align(Alignment.Center),
                             )
-
+                            val ringSurface = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
                             if (event != null && candidate != null && isEnabled) {
                                 Box(
                                     modifier = Modifier
                                         .align(Alignment.BottomCenter)
                                         .padding(bottom = 6.dp)
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .border(
-                                            BorderStroke(
-                                                1.dp,
-                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                            ),
-                                            CircleShape,
-                                        )
-                                        .background(event.color),
+                                        .size(8.dp)
+                                        .drawBehind {
+                                            val r = size.minDimension / 2f
+                                            drawCircle(color = event.color, radius = r)
+
+                                            val r1 = r - 1.dp.toPx()
+                                            if (r1 > 0f) {
+                                                drawCircle(
+                                                    color = ringSurface,
+                                                    radius = r1
+                                                )
+                                            }
+
+                                            val r2 = r1 - 1.dp.toPx()
+                                            if (r2 > 0f) {
+                                                drawCircle(
+                                                    color = event.color.copy(alpha = 0.7f),
+                                                    radius = r2
+                                                )
+                                            }
+                                        }
                                 )
                             }
 
@@ -223,7 +300,7 @@ fun DayOfWeekRangeView(
                                         .align(if (isStart) Alignment.CenterStart else Alignment.CenterEnd)
                                         .fillMaxHeight()
                                         .width(6.dp)
-                                        .background(highlightColor.copy(alpha = 0.28f))
+                                        .background(highlightFill)
                                         .zIndex(-1f)
                                 )
                             }
@@ -288,6 +365,8 @@ private fun DayOfWeekRangeViewPreview() {
         digitMode = DigitMode.Persian,
         weekendLabelColor = colors.weekendLabelColor,
         highlightColor = colors.todayOutline,
+        highlightFill = colors.todayButtonBackground,
+        highlightedDate = SoleimaniDate(1403, 5, 8),
         eventIndicator = { date ->
             if (date.day == 1) CalendarEvent(Color(0xFF10B981), "شروع ماه") else null
         },

@@ -17,11 +17,11 @@ import androidx.core.view.WindowCompat
 import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
-    primary = CalendarColorTokens.gradientStart,
-    secondary = CalendarColorTokens.gradientEnd,
-    tertiary = CalendarColorTokens.accentOrange,
-    background = CalendarColorTokens.baseDark,
-    surface = CalendarColorTokens.baseDark,
+    primary = CalendarColorTokens.Violet,
+    secondary = CalendarColorTokens.Teal,
+    tertiary = CalendarColorTokens.Weekend,
+    background = CalendarColorTokens.BaseDark,
+    surface = CalendarColorTokens.BaseDark,
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
@@ -30,16 +30,16 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = CalendarColorTokens.gradientStart,
-    secondary = CalendarColorTokens.gradientEnd,
-    tertiary = CalendarColorTokens.accentOrange,
-    background = CalendarColorTokens.baseLight,
-    surface = CalendarColorTokens.baseLight,
+    primary = CalendarColorTokens.Violet,
+    secondary = CalendarColorTokens.Teal,
+    tertiary = CalendarColorTokens.Weekend,
+    background = CalendarColorTokens.BaseLight,
+    surface = CalendarColorTokens.BaseLight,
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
-    onBackground = CalendarColorTokens.textPrimary,
-    onSurface = CalendarColorTokens.textPrimary,
+    onBackground = CalendarColorTokens.TextPrimary,
+    onSurface = CalendarColorTokens.TextPrimary,
 )
 
 @Composable

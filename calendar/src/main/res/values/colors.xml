@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ocean_blue">#4C1D95</color>
-    <color name="sky_teal">#22D3EE</color>
+    <color name="sky_teal">#0EA5E9</color>
     <color name="sunset_orange">#FB7185</color>
     <color name="sand_gold">#FACC15</color>
     <color name="midnight">#020617</color>
