@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ocean_blue">#3F5BF6</color>
+    <color name="sky_teal">#0EA5A4</color>
+    <color name="sunset_orange">#E5484D</color>
+    <color name="sand_gold">#F2B93B</color>
+    <color name="midnight">#0A1020</color>
+    <color name="cloud">#F7F9FC</color>
+    <color name="slate">#172033</color>
+    <color name="mist">#667085</color>
+    <color name="fern">#17A673</color>
+    <color name="coral">#D92D20</color>
+</resources>
