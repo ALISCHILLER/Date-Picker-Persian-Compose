@@ -12,7 +12,7 @@ android-min-sdk = "26"
 app-version-code = "6"
 app-version-name = "1.5"
 
-core-ktx = "1.17.0"
+core-ktx = "1.19.0"
 androidx-annotation = "1.10.0"
 activity-compose = "1.13.0"
 compose-bom = "2026.06.00"
