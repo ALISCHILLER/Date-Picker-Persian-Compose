@@ -1,0 +1,54 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Generated Android artifacts
+**/build/
+**/release/
+*.apk
+*.aab
+*.ap_
+*.idsig
+*.hprof
+
+# Local keystore / signing material
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+
+# Maven Central credentials and signing keys
+secring.gpg
+*.asc
+central-token.txt
+
+
+# Generated release evidence
+/release-artifacts/
+
+# Local environment and signing exports
+.env
+.env.*
+*.gpg
+*.key
+
+# IDE and Kotlin local state
+/.idea/
+/.kotlin/
+
+# Additional private-key containers
+*.p12
+*.pfx
+*.pem

@@ -1,0 +1,14 @@
+LICENSE.md: OK
+gradle-wrapper.jar: OK
+Gradle wrapper JAR and distribution metadata checksums verified.
+GitHub workflow action, credential, cache, and permission policy verified.
+Architecture, manifest, and localization verification passed.
+Standalone core verification passed: 77736 round trips
+Standalone Java interop verification passed
+Standalone toolchain: info: kotlinc-jvm 1.9.0 (JRE 21.0.10+7-Debian-1deb13u1); javac 21.0.10; JVM target 17
+Publishing configuration verified:
+  io.github.alischiller:persian-calendar-core:1.0.0
+  io.github.alischiller:persian-date-picker-compose:1.0.0
+Synthetic release-bundle collection and verification passed.
+Documentation links and README policy verified across 28 Markdown files.
+Repository XML and workflow syntax verification passed.

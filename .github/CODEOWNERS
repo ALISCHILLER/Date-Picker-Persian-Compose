@@ -1,0 +1,6 @@
+# Default reviewer for public API, release, and security-sensitive changes.
+* @ALISCHILLER
+/calendar-core/ @ALISCHILLER
+/calendar/ @ALISCHILLER
+/.github/workflows/ @ALISCHILLER
+/gradle/ @ALISCHILLER

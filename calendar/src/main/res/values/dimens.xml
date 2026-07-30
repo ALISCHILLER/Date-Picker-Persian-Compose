@@ -1,0 +1,4 @@
+<resources>
+    <dimen name="scd_normal_100">16dp</dimen>
+    <dimen name="scd_normal_150">24dp</dimen>
+</resources>

@@ -1,0 +1,120 @@
+name: Publish Maven Central
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+  artifact-metadata: write
+
+concurrency:
+  group: maven-central-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    environment: maven-central
+
+    steps:
+      - name: Checkout immutable release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5.6.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+          cache-read-only: true
+
+      - name: Install Android SDK components
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;35.0.0"
+
+      - name: Make scripts executable
+        run: chmod +x gradlew scripts/*.sh
+
+      - name: Verify repository policy and release version
+        run: |
+          ./scripts/verify-repository.sh
+          ./scripts/check-release-version.sh "${{ github.event.release.tag_name }}"
+
+      - name: Build, test, lint, format-check, and generate SBOM
+        run: >-
+          ./gradlew --no-daemon
+          :calendar-core:ktlintCheck
+          cyclonedxBom
+          :calendar-core:check
+          :calendar:testDebugUnitTest
+          :calendar:lintRelease
+          :calendar:assembleRelease
+          :calendar-core:publishToMavenLocal
+          :calendar:publishToMavenLocal
+          -PskipSigning=true
+
+      - name: Verify independent Maven consumer
+        run: ./scripts/verify-maven-consumer.sh
+
+      - name: Prepare immutable release evidence
+        run: |
+          ./scripts/collect-release-artifacts.sh
+          ./scripts/verify-release-bundle.sh
+
+      - name: Publish both signed artifacts and release Central deployment
+        run: ./gradlew --no-daemon publishAndReleaseToMavenCentral
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+
+      - name: Attest release bundle provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: release-artifacts/*.zip
+
+      - name: Attest release bundle with CycloneDX SBOM
+        uses: actions/attest@v4
+        with:
+          subject-path: release-artifacts/*.zip
+          sbom-path: release-artifacts/sbom/bom.json
+
+      - name: Upload release evidence to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh release upload "$RELEASE_TAG" \
+            release-artifacts/*.zip \
+            release-artifacts/*.zip.sha256 \
+            release-artifacts/SHA256SUMS \
+            release-artifacts/RELEASE-METADATA.txt \
+            release-artifacts/sbom/bom.json \
+            release-artifacts/sbom/bom.xml \
+            --clobber
+
+      - name: Upload release evidence as workflow artifact
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: maven-central-release-evidence-${{ github.event.release.tag_name }}
+          path: release-artifacts/
+          if-no-files-found: error
+          retention-days: 90

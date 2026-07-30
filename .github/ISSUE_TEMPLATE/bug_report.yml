@@ -1,0 +1,51 @@
+name: Bug report
+description: Report a reproducible calendar, UI, localization, or integration problem.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting a reproducible issue. Do not include secrets or private application data.
+  - type: input
+    id: version
+    attributes:
+      label: Library version
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: dropdown
+    id: artifact
+    attributes:
+      label: Artifact
+      options:
+        - persian-date-picker-compose
+        - persian-calendar-core
+        - sample app
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include the smallest code sample and exact steps.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: Android API, Kotlin, Compose, device/emulator, locale and layout direction
+    validations:
+      required: true

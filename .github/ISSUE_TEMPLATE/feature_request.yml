@@ -1,0 +1,25 @@
+name: Feature request
+description: Propose a focused, backwards-compatible capability.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the concrete consumer problem rather than only the proposed API.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior or API
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and migration impact
+      description: Mention public API, localization, RTL/LTR, accessibility, and artifact impact.
+    validations:
+      required: true
