@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout immutable release tag
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
@@ -87,12 +87,12 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
 
       - name: Attest release bundle provenance
-        uses: actions/attest@v4
+        uses: actions/attest@v4.2.0
         with:
           subject-path: release-artifacts/*.zip
 
       - name: Attest release bundle with CycloneDX SBOM
-        uses: actions/attest@v4
+        uses: actions/attest@v4.2.0
         with:
           subject-path: release-artifacts/*.zip
           sbom-path: release-artifacts/sbom/bom.json
@@ -112,7 +112,7 @@ jobs:
             --clobber
 
       - name: Upload release evidence as workflow artifact
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: maven-central-release-evidence-${{ github.event.release.tag_name }}
           path: release-artifacts/
